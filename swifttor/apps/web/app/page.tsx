@@ -93,15 +93,12 @@ export default function LandingPage() {
       </nav>
       <LiveTicker />
 
-      {/* ── Video Greeting ── */}
+      {/* ── Hero Background ── */}
       <div className="relative w-full h-64 md:h-96 lg:h-screen max-h-[500px] bg-slate-900 overflow-hidden">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
+        <img
+          src="https://images.unsplash.com/photo-1444628838545-ac4016a5418a?auto=format&fit=crop&q=80&w=2000"
+          alt="Night driving"
           className="w-full h-full object-cover"
-          src="https://assets.mixkit.co/videos/preview/mixkit-driving-on-a-highway-at-night-1808-large.mp4"
         />
         {/* Overlay gradient for text contrast */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/50 to-transparent" />

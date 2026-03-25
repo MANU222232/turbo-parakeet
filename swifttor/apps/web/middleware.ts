@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
     img-src 'self' data: blob: https://*.gstatic.com https://*.googleapis.com https://*.google.com https://*.googleusercontent.com https://*.unsplash.com https://*.pexels.com https://*.pixabay.com https://*.picsum.photos https://*.gravatar.com https://*.pravatar.cc;
     font-src 'self' https://fonts.gstatic.com;
     connect-src 'self' https://*.google.com https://*.googleapis.com https://*.stripe.com http://localhost:8000 ws://localhost:8000 https://vitals.vercel-insights.com https://ipapi.co;
-    media-src 'self' https://assets.mixkit.co https://*.pexels.com https://*.pixabay.com;
+    media-src 'self' https://cdn.coverr.co https://assets.mixkit.co https://*.pexels.com https://*.pixabay.com;
     frame-src 'self' https://*.stripe.com;
     frame-ancestors 'none';
   `.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
