@@ -1,75 +1,104 @@
 'use client';
 
-import { Truck, MapPin } from 'lucide-react';
+import { useJsApiLoader, GoogleMap, MarkerF } from '@react-google-maps/api';
+import { Truck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Generic sleek silver map style
+const MAP_STYLES = [
+  { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+  { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+  { featureType: "poi", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+  { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+  { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+  { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+  { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+  { featureType: "transit.line", elementType: "geometry", stylers: [{ color: "#e5e5e5" }] },
+  { featureType: "transit.station", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] }
+];
+
+const DEFAULT_CENTER = { lat: 37.7749, lng: -122.4194 }; // Using a generic center
+
+const MOCK_DRIVERS = [
+  { id: 1, position: { lat: 37.7850, lng: -122.4100 } },
+  { id: 2, position: { lat: 37.7650, lng: -122.4200 } },
+  { id: 3, position: { lat: 37.7700, lng: -122.4000 } },
+];
+
 export default function MapContainer() {
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '',
+  });
+
+  if (!isLoaded) {
+    return (
+      <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
+        Loading Map...
+      </div>
+    );
+  }
+
   return (
-    <div className="relative w-full h-full bg-slate-100 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner group flex items-center justify-center">
-      {/* Mock Map Grid */}
-      <div className="absolute inset-0 opacity-20" 
-            style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-      
-      {/* Mock Roads */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-0 w-full h-8 bg-slate-200 -rotate-12" />
-        <div className="absolute top-0 left-1/3 w-8 h-full bg-slate-200 rotate-6" />
-        <div className="absolute bottom-1/4 left-0 w-full h-12 bg-slate-200 rotate-3" />
-      </div>
-
-      {/* Mock Markers */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Client Marker */}
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute"
-          style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-        >
-          <div className="relative">
-            <div className="absolute -inset-4 bg-red-500/20 rounded-full animate-ping" />
-            <div className="bg-red-500 p-2 rounded-full shadow-lg border-2 border-white relative z-10">
-              <MapPin size={16} color="white" />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Truck Marker (en route) */}
-        <motion.div 
-          animate={{ 
-            left: ['40%', '50%'],
-            top: ['40%', '50%']
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          className="absolute"
-          style={{ transform: 'translate(-50%, -50%)' }}
-        >
-          <div className="bg-slate-900 p-2 rounded-full shadow-lg border-2 border-white animate-pulse">
-            <Truck size={16} color="white" />
-          </div>
-        </motion.div>
-
-        {/* Nearby Drivers - Static placement */}
-        {[0, 1, 2, 3].map((_, i) => (
-          <div 
-            key={i}
-            className="absolute opacity-40"
-            style={{ 
-              left: `${20 + (i * 25)}%`, 
-              top: `${15 + (i * 30)}%` 
+    <div className="relative w-full h-full bg-slate-100 group">
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100%' }}
+        center={DEFAULT_CENTER}
+        zoom={13}
+        options={{
+          styles: MAP_STYLES,
+          disableDefaultUI: true,
+          zoomControl: false,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          gestureHandling: 'none', // Prevent user scrolling on the landing page map
+        }}
+      >
+        {/* Plot actual Google Maps Markers */}
+        {MOCK_DRIVERS.map((driver) => (
+          <MarkerF
+            key={driver.id}
+            position={driver.position}
+            icon={{
+              path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
+              fillColor: '#10b981', // emerald-500
+              fillOpacity: 1,
+              strokeWeight: 1,
+              strokeColor: '#ffffff',
+              scale: 1.5,
+              anchor: new google.maps.Point(12, 24),
             }}
-          >
-            <div className="bg-emerald-500 p-1.5 rounded-full shadow-md border border-white">
-              <Truck size={12} color="white" />
-            </div>
-          </div>
+          />
         ))}
-      </div>
 
-      {/* Static Mode Badge */}
-      <div className="absolute top-4 right-4 bg-amber-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-        Live Demo
+        {/* Highlight Main Client Area */}
+        <MarkerF
+          position={DEFAULT_CENTER}
+          icon={{
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: '#ef4444', // red-500
+            fillOpacity: 1,
+            strokeWeight: 3,
+            strokeColor: '#ffffff',
+            scale: 8,
+          }}
+        />
+      </GoogleMap>
+
+      {/* Dynamic Overlay indicating real map */}
+      <div className="absolute top-4 right-4 bg-slate-900 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 z-10">
+        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+        Live Fleet Map
       </div>
     </div>
   );
