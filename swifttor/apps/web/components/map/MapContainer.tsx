@@ -1,6 +1,6 @@
 'use client';
 
-import { useJsApiLoader, GoogleMap, MarkerF } from '@react-google-maps/api';
+import { GoogleMap, MarkerF } from '@react-google-maps/api';
 import { Truck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -35,18 +35,6 @@ const MOCK_DRIVERS = [
 ];
 
 export default function MapContainer() {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '',
-  });
-
-  if (!isLoaded) {
-    return (
-      <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
-        Loading Map...
-      </div>
-    );
-  }
 
   return (
     <div className="relative w-full h-full bg-slate-100 group">
