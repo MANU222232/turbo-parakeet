@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { GoogleMap, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { Truck, MapPin } from 'lucide-react';
