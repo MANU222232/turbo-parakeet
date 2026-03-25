@@ -31,10 +31,10 @@ export default function LiveDrivers() {
       } catch {
         // Use demo fallback
         setDrivers([
-          { id: 4292, name: 'Mike', unit: '#4292', vehicle_type: 'Flatbed', distance_km: 1.2, status: 'available' },
-          { id: 8810, name: 'Sarah', unit: '#8810', vehicle_type: 'Wrecker', distance_km: 2.5, status: 'on_job' },
-          { id: 3301, name: 'James', unit: '#3301', vehicle_type: 'Flatbed', distance_km: 3.1, status: 'available' },
-          { id: 7720, name: 'Priya', unit: '#7720', vehicle_type: 'Heavy Duty', distance_km: 4.8, status: 'available' },
+          { id: 4292, name: 'Active', unit: '#4292', vehicle_type: 'Flatbed', distance_km: 1.2, status: 'available' },
+          { id: 8810, name: 'Active', unit: '#8810', vehicle_type: 'Wrecker', distance_km: 2.5, status: 'on_job' },
+          { id: 3301, name: 'Active', unit: '#3301', vehicle_type: 'Flatbed', distance_km: 3.1, status: 'available' },
+          { id: 7720, name: 'Active', unit: '#7720', vehicle_type: 'Heavy Duty', distance_km: 4.8, status: 'available' },
         ]);
       }
     };

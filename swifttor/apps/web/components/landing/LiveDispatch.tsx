@@ -12,11 +12,11 @@ const MapContainer = dynamic(() => import('@/components/map/MapContainer').catch
 
 export default function LiveDispatch() {
   const liveRecoveries = [
-    { loc: "Downtown SF", time: "2 mins ago", img: "https://images.unsplash.com/photo-1597766353939-996076329780?auto=format&fit=crop&q=80&w=600" },
-    { loc: "Highway 101", time: "5 mins ago", img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=600" },
-    { loc: "Oakland Hills", time: "12 mins ago", img: "https://images.unsplash.com/photo-1586191582151-f73770706260?auto=format&fit=crop&q=80&w=600" },
-    { loc: "San Jose", time: "18 mins ago", img: "https://images.unsplash.com/photo-1566367711988-89f40d4d9bc4?auto=format&fit=crop&q=80&w=600" },
-    { loc: "Palo Alto", time: "25 mins ago", img: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=600" }
+    { loc: "Expert Recovery", time: "5-Star Rated Service", img: "https://images.unsplash.com/photo-1597766353939-996076329780?auto=format&fit=crop&q=80&w=600" },
+    { loc: "Fast Arrival", time: "Under 15 Min Average", img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=600" },
+    { loc: "Safe & Secure", time: "Certified Professionals", img: "https://images.unsplash.com/photo-1586191582151-f73770706260?auto=format&fit=crop&q=80&w=600" },
+    { loc: "24/7 Support", time: "Always On Call", img: "https://images.unsplash.com/photo-1566367711988-89f40d4d9bc4?auto=format&fit=crop&q=80&w=600" },
+    { loc: "Local Trusted", time: "Preferred Partner", img: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=600" }
   ];
 
   return (
