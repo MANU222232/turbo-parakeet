@@ -101,7 +101,7 @@ export default function LandingPage() {
           loop
           playsInline
           className="w-full h-full object-cover"
-          src="https://cdn.pixabay.com/vimeo/459030232/towing-43632.mp4?width=1280&hash=85e8d7d8e69213166860368c6e3b2e3e9d8d8d8d"
+          src="https://assets.mixkit.co/videos/preview/mixkit-driving-on-a-highway-at-night-1808-large.mp4"
         />
         {/* Overlay gradient for text contrast */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/50 to-transparent" />
