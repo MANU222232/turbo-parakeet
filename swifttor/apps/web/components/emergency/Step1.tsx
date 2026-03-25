@@ -187,7 +187,7 @@ export default function Step1({ onNext }: { onNext: () => void }) {
               <input
                 {...register('phone')}
                 type="tel"
-                placeholder="+254 7XX..."
+                placeholder="+1 (555) 000-0000"
                 className="w-full h-14 bg-white border border-slate-200 rounded-[1.25rem] px-5 text-slate-900 font-black italic text-sm placeholder:text-slate-300 placeholder:font-normal focus:border-emerald-500 focus:ring-[6px] focus:ring-emerald-50 shadow-sm transition-all outline-none"
               />
               {errors.phone && <p className="text-red-500 text-[10px] mt-1 ml-1 font-bold uppercase">{errors.phone.message}</p>}
@@ -199,7 +199,7 @@ export default function Step1({ onNext }: { onNext: () => void }) {
             <div className="relative group">
               <input
                 {...register('location')}
-                placeholder="e.g. Mombasa Road, near Total station"
+                placeholder="e.g. Main Street, near the library"
                 className="w-full h-14 bg-white border border-slate-200 rounded-[1.25rem] px-5 pr-12 text-slate-900 font-black italic text-sm placeholder:text-slate-300 placeholder:font-normal focus:border-emerald-500 focus:ring-[6px] focus:ring-emerald-50 shadow-sm transition-all outline-none"
               />
               <button 

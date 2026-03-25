@@ -19,11 +19,11 @@ const INITIAL_DRIVERS = [
 ];
 
 const ROUTES = [
-  { id: 'r1', name: "Market St - Downtown", estTime: "15 mins" },
-  { id: 'r2', name: "Highway 101 - SFO", estTime: "25 mins" },
-  { id: 'r3', name: "Geary Blvd - Richmond", estTime: "20 mins" },
-  { id: 'r4', name: "Mission St - Bernal Heights", estTime: "18 mins" },
-  { id: 'r5', name: "Lombard St - Marina", estTime: "12 mins" },
+  { id: 'r1', name: "Sector A - Downtown", estTime: "15 mins" },
+  { id: 'r2', name: "Highway 1 - Airport Side", estTime: "25 mins" },
+  { id: 'r3', name: "Sector B - Residential", estTime: "20 mins" },
+  { id: 'r4', name: "Sector C - Industrial", estTime: "18 mins" },
+  { id: 'r5', name: "Beltway - North Loop", estTime: "12 mins" },
 ];
 
 

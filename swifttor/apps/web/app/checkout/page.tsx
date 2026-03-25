@@ -47,7 +47,7 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             amount_cents: Math.round(totalAmount * 100),
-            currency: 'kes',
+            currency: 'usd',
             capture_method: 'manual',
             phone: emergency.phone || '000'
           })

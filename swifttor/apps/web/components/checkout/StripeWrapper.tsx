@@ -37,7 +37,7 @@ function CheckoutForm({ onConfirm, amountCents, hideButton }: { onConfirm: (id: 
 
     const pr = stripe.paymentRequest({
       country: 'US',
-      currency: 'kes',
+      currency: 'usd',
       total: {
         label: 'SwiftTor Recovery',
         amount: amountCents,
@@ -57,7 +57,7 @@ function CheckoutForm({ onConfirm, amountCents, hideButton }: { onConfirm: (id: 
       const { clientSecret } = await (await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/payments/intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount_cents: amountCents, currency: 'kes', capture_method: 'manual' })
+        body: JSON.stringify({ amount_cents: amountCents, currency: 'usd', capture_method: 'manual' })
       })).json();
 
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(

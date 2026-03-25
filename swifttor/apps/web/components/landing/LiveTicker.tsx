@@ -6,7 +6,7 @@ import { Zap } from 'lucide-react';
 
 const TICKER_ITEMS = [
   "Verified 5-Star Roadside Assistance",
-  "15-Minute Average ETA in Nairobi",
+  "15-Minute Average ETA in the Region",
   "Certified Professional Recovery Team",
   "24/7 Emergency Support Always Active",
   "Largest Fleet Coverage in the Region"
