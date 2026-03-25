@@ -1,0 +1,25 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+psycopg2-binary
+asyncpg
+motor
+upstash-redis
+python-dotenv
+pydantic
+pydantic-settings
+PyJWT
+google-genai
+# HTTP client
+httpx
+# Socket.io ASGI support
+python-socketio
+# Error monitoring
+sentry-sdk[fastapi]
+# Payments
+stripe
+# Cloud storage
+boto3
+# SMS / voice
+twilio

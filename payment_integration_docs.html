@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US Payment Platforms — Integration Docs</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --accent-1: #6ee7b7; /* stripe green */
+    --accent-2: #60a5fa; /* paypal blue */
+    --accent-3: #f59e0b; /* square amber */
+    --accent-4: #a78bfa; /* braintree purple */
+    --accent-5: #fb7185; /* authorize red */
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0d1117;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 2rem;
+    padding: 1rem 2rem;
+  }
+  nav .logo { font-size: 1rem; font-weight: 800; letter-spacing: -.02em; color: var(--accent-1); }
+  nav .links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  nav .links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem; color: var(--muted);
+    text-decoration: none; transition: color .2s;
+  }
+  nav .links a:hover { color: var(--text); }
+
+  /* HERO */
+  .hero {
+    padding: 5rem 2rem 3rem;
+    max-width: 860px; margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem; color: var(--accent-1);
+    text-transform: uppercase; letter-spacing: .15em;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800; line-height: 1.1;
+    letter-spacing: -.03em; margin-bottom: 1.2rem;
+  }
+  .hero p { font-size: 1.1rem; color: var(--muted); max-width: 580px; }
+
+  /* PLATFORM TABLE */
+  .overview {
+    max-width: 1000px; margin: 3rem auto; padding: 0 2rem;
+  }
+  .overview h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.2rem; letter-spacing: -.01em; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th {
+    text-align: left; font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .1em; padding: .6rem .8rem;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: .7rem .8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: .2rem .5rem; border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace; font-size: .7rem;
+    font-weight: 600; letter-spacing: .04em;
+  }
+
+  /* PLATFORM SECTION */
+  .platform {
+    max-width: 1000px; margin: 0 auto 6rem; padding: 0 2rem;
+  }
+  .platform-header {
+    display: flex; align-items: flex-start; gap: 1.2rem;
+    padding: 2.5rem 0 2rem; border-top: 2px solid var(--border);
+    margin-top: 3rem;
+  }
+  .platform-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 3rem; font-weight: 600; line-height: 1;
+    opacity: .18; user-select: none;
+  }
+  .platform-title { flex: 1; }
+  .platform-title h2 { font-size: 2rem; font-weight: 800; letter-spacing: -.02em; }
+  .platform-title .subtitle { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
+  .platform-meta {
+    display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .8rem;
+  }
+  .pill {
+    font-family: 'IBM Plex Mono', monospace; font-size: .7rem;
+    border-radius: 99px; padding: .25rem .75rem;
+    border: 1px solid; opacity: .85;
+  }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 2.5rem; margin-top: 2rem; }
+  .step {}
+  .step-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: .68rem;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: .5rem;
+  }
+  .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .7rem; }
+  .step p { color: var(--muted); font-size: .9rem; margin-bottom: .8rem; line-height: 1.7; }
+
+  /* CODE BLOCKS */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.4rem;
+    overflow-x: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .78rem;
+    line-height: 1.6;
+    color: #c9d1d9;
+    position: relative;
+    margin: .5rem 0;
+  }
+  .lang-tag {
+    position: absolute; top: .6rem; right: .8rem;
+    font-family: 'IBM Plex Mono', monospace; font-size: .62rem;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .fn { color: #d2a8ff; }
+  .cm { color: #8b949e; }
+  .num { color: #79c0ff; }
+  .obj { color: #ffa657; }
+
+  /* CALLOUT */
+  .callout {
+    border-left: 3px solid;
+    padding: .9rem 1.2rem;
+    border-radius: 0 6px 6px 0;
+    background: rgba(255,255,255,.03);
+    font-size: .85rem; line-height: 1.65;
+    margin: 1rem 0;
+  }
+  .callout strong { display: block; margin-bottom: .2rem; font-size: .75rem;
+    font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .1em; }
+
+  /* WEBHOOK */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: .5rem; }
+  @media(max-width:680px){ .two-col { grid-template-columns: 1fr; } nav .links { display: none; } }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">PAYMENTS.DEV</div>
+  <div class="links">
+    <a href="#stripe">Stripe</a>
+    <a href="#paypal">PayPal</a>
+    <a href="#square">Square</a>
+    <a href="#braintree">Braintree</a>
+    <a href="#authorize">Authorize.net</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="tag">Full-Stack Integration Guide · 2026</div>
+  <h1>Top 5 US Payment Platforms</h1>
+  <p>Production-ready code, webhook handling, and full receiving-funds documentation for the most popular payment processors in the United States.</p>
+</div>
+
+<!-- OVERVIEW TABLE -->
+<div class="overview">
+  <h2>Platform Comparison</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Platform</th><th>Tx Fee</th><th>Payout Speed</th><th>Best For</th><th>SDKs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:#6ee7b7">01</span></td>
+        <td><strong>Stripe</strong></td>
+        <td>2.9% + $0.30</td>
+        <td>2 business days (instant available)</td>
+        <td>SaaS, Marketplaces, Subscriptions</td>
+        <td><span class="badge" style="background:#0d2e1a;color:#6ee7b7">JS · Python · Ruby · Go · PHP · Java</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:#60a5fa">02</span></td>
+        <td><strong>PayPal</strong></td>
+        <td>3.49% + $0.49</td>
+        <td>Instant to PayPal / 1–3 days bank</td>
+        <td>Consumer apps, Freelancers, eCommerce</td>
+        <td><span class="badge" style="background:#0d1e2e;color:#60a5fa">JS · Python · PHP · Ruby · Java</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:#f59e0b">03</span></td>
+        <td><strong>Square</strong></td>
+        <td>2.6% + $0.10 (in-person) / 2.9% + $0.30 (online)</td>
+        <td>Next business day (instant for fee)</td>
+        <td>Retail POS, SMBs, Restaurants</td>
+        <td><span class="badge" style="background:#2e1e00;color:#f59e0b">JS · Python · Ruby · Java · PHP</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:#a78bfa">04</span></td>
+        <td><strong>Braintree</strong></td>
+        <td>2.59% + $0.49</td>
+        <td>2 business days</td>
+        <td>Enterprise, PayPal-connected apps</td>
+        <td><span class="badge" style="background:#1a0d2e;color:#a78bfa">JS · Python · Ruby · PHP · Java · .NET</span></td>
+      </tr>
+      <tr>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:#fb7185">05</span></td>
+        <td><strong>Authorize.net</strong></td>
+        <td>2.9% + $0.30 + $25/mo</td>
+        <td>2–5 business days</td>
+        <td>B2B, Established merchants, Subscriptions</td>
+        <td><span class="badge" style="background:#2e0d12;color:#fb7185">PHP · .NET · Java · Ruby · Python</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ STRIPE ============ -->
+<div class="platform" id="stripe">
+  <div class="platform-header">
+    <div class="platform-num">01</div>
+    <div class="platform-title">
+      <h2 style="color:#6ee7b7">Stripe</h2>
+      <div class="subtitle">stripe.com/docs · The developer-first payment OS</div>
+      <div class="platform-meta">
+        <span class="pill" style="color:#6ee7b7;border-color:#6ee7b7">PCI DSS L1</span>
+        <span class="pill" style="color:#6ee7b7;border-color:#6ee7b7">Webhooks</span>
+        <span class="pill" style="color:#6ee7b7;border-color:#6ee7b7">Connect (Marketplaces)</span>
+        <span class="pill" style="color:#6ee7b7;border-color:#6ee7b7">Instant Payouts</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Step 1 — Installation</div>
+      <h3>Install SDK</h3>
+<pre><span class="cm"># Node.js</span>
+npm install stripe @stripe/stripe-js
+
+<span class="cm"># Python</span>
+pip install stripe</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 2 — Server: Create Payment Intent</div>
+      <h3>Accept funds via Payment Intent API (Node.js)</h3>
+      <p>Payment Intents represent the full lifecycle of a payment. Create one on your server, confirm on the client.</p>
+<pre><div class="lang-tag">node.js</div><span class="kw">const</span> stripe = <span class="fn">require</span>(<span class="str">'stripe'</span>)(process.env.STRIPE_SECRET_KEY);
+<span class="cm">// ⚠️  Never expose secret key to the client</span>
+
+app.<span class="fn">post</span>(<span class="str">'/create-payment-intent'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { amount, currency = <span class="str">'usd'</span>, customerId } = req.body;
+
+  <span class="kw">const</span> paymentIntent = <span class="kw">await</span> stripe.paymentIntents.<span class="fn">create</span>({
+    amount,                  <span class="cm">// in cents, e.g. 5000 = $50.00</span>
+    currency,
+    customer: customerId,    <span class="cm">// optional — attach to a Stripe customer</span>
+    payment_method_types: [<span class="str">'card'</span>],
+    metadata: { order_id: req.body.orderId },
+  });
+
+  res.<span class="fn">json</span>({ clientSecret: paymentIntent.client_secret });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 3 — Client: Stripe Elements (React)</div>
+      <h3>Render the payment form</h3>
+<pre><div class="lang-tag">react</div><span class="kw">import</span> { loadStripe } <span class="kw">from</span> <span class="str">'@stripe/stripe-js'</span>;
+<span class="kw">import</span> { Elements, PaymentElement, useStripe, useElements } <span class="kw">from</span> <span class="str">'@stripe/react-stripe-js'</span>;
+
+<span class="kw">const</span> stripePromise = <span class="fn">loadStripe</span>(<span class="str">'pk_live_...'</span>); <span class="cm">// publishable key only</span>
+
+<span class="kw">function</span> <span class="fn">CheckoutForm</span>() {
+  <span class="kw">const</span> stripe = <span class="fn">useStripe</span>();
+  <span class="kw">const</span> elements = <span class="fn">useElements</span>();
+
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = <span class="kw">async</span> (e) => {
+    e.<span class="fn">preventDefault</span>();
+    <span class="kw">const</span> { error } = <span class="kw">await</span> stripe.<span class="fn">confirmPayment</span>({
+      elements,
+      confirmParams: { return_url: <span class="str">'https://yourapp.com/payment/success'</span> },
+    });
+    <span class="kw">if</span> (error) console.<span class="fn">error</span>(error.message);
+  };
+
+  <span class="kw">return</span> (
+    &lt;<span class="obj">form</span> onSubmit={handleSubmit}&gt;
+      &lt;<span class="obj">PaymentElement</span> /&gt;
+      &lt;<span class="obj">button</span>&gt;Pay Now&lt;/<span class="obj">button</span>&gt;
+    &lt;/<span class="obj">form</span>&gt;
+  );
+}
+
+<span class="kw">export default function</span> <span class="fn">App</span>({ clientSecret }) {
+  <span class="kw">return</span> (
+    &lt;<span class="obj">Elements</span> stripe={stripePromise} options={{ clientSecret }}&gt;
+      &lt;<span class="obj">CheckoutForm</span> /&gt;
+    &lt;/<span class="obj">Elements</span>&gt;
+  );
+}</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 4 — Webhooks (Receiving Confirmation)</div>
+      <h3>Listen for payment.succeeded events</h3>
+      <p>Webhooks are the source of truth for payment confirmation — never rely solely on client-side redirects.</p>
+<pre><div class="lang-tag">node.js</div><span class="kw">const</span> endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+app.<span class="fn">post</span>(<span class="str">'/webhook'</span>, express.<span class="fn">raw</span>({ type: <span class="str">'application/json'</span> }), (req, res) => {
+  <span class="kw">let</span> event;
+  <span class="kw">try</span> {
+    event = stripe.webhooks.<span class="fn">constructEvent</span>(req.body, req.headers[<span class="str">'stripe-signature'</span>], endpointSecret);
+  } <span class="kw">catch</span> (err) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">send</span>(`Webhook Error: ${err.message}`);
+  }
+
+  <span class="kw">switch</span> (event.type) {
+    <span class="kw">case</span> <span class="str">'payment_intent.succeeded'</span>:
+      <span class="kw">const</span> pi = event.data.object;
+      <span class="cm">// ✅ Fulfill order, update DB, send receipt</span>
+      console.<span class="fn">log</span>(<span class="str">`Received $${pi.amount_received / 100}`</span>);
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="str">'payment_intent.payment_failed'</span>:
+      <span class="cm">// Handle failure — notify user</span>
+      <span class="kw">break</span>;
+  }
+  res.<span class="fn">json</span>({ received: <span class="kw">true</span> });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 5 — Payouts (Receiving Funds to Your Bank)</div>
+      <h3>Automatic & Manual Payouts</h3>
+<pre><div class="lang-tag">node.js</div><span class="cm">// Check balance</span>
+<span class="kw">const</span> balance = <span class="kw">await</span> stripe.balance.<span class="fn">retrieve</span>();
+console.<span class="fn">log</span>(balance.available[<span class="num">0</span>].amount); <span class="cm">// in cents</span>
+
+<span class="cm">// Manual payout to connected bank account</span>
+<span class="kw">const</span> payout = <span class="kw">await</span> stripe.payouts.<span class="fn">create</span>({
+  amount: <span class="num">10000</span>,   <span class="cm">// $100.00</span>
+  currency: <span class="str">'usd'</span>,
+  method: <span class="str">'instant'</span>,  <span class="cm">// or 'standard' (2 days)</span>
+  description: <span class="str">'Weekly payout'</span>,
+});</pre>
+      <div class="callout" style="border-color:#6ee7b7">
+        <strong>📌 Key Point</strong>
+        Stripe automatically pays out your available balance every 2 business days by default. Go to Dashboard → Settings → Payouts to configure schedule or enable Instant Payouts (1.5% fee, min $0.50).
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-label">CLI Testing</div>
+      <h3>Test webhooks locally</h3>
+<pre>stripe login
+stripe listen --forward-to localhost:3000/webhook
+stripe trigger payment_intent.succeeded</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAYPAL ============ -->
+<div class="platform" id="paypal">
+  <div class="platform-header">
+    <div class="platform-num">02</div>
+    <div class="platform-title">
+      <h2 style="color:#60a5fa">PayPal</h2>
+      <div class="subtitle">developer.paypal.com · 431M users, instant PayPal-to-PayPal transfers</div>
+      <div class="platform-meta">
+        <span class="pill" style="color:#60a5fa;border-color:#60a5fa">PayPal & Venmo</span>
+        <span class="pill" style="color:#60a5fa;border-color:#60a5fa">Buy Now Pay Later</span>
+        <span class="pill" style="color:#60a5fa;border-color:#60a5fa">200+ Countries</span>
+        <span class="pill" style="color:#60a5fa;border-color:#60a5fa">Instant Transfers</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Step 1 — Setup</div>
+      <h3>Install PayPal JS SDK</h3>
+<pre><span class="cm"># Via CDN (HTML)</span>
+&lt;script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD"&gt;&lt;/script&gt;
+
+<span class="cm"># Node.js server SDK</span>
+npm install @paypal/checkout-server-sdk</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 2 — Server: Create Order</div>
+      <h3>Create a PayPal Order (Node.js)</h3>
+<pre><div class="lang-tag">node.js</div><span class="kw">const</span> paypal = <span class="fn">require</span>(<span class="str">'@paypal/checkout-server-sdk'</span>);
+
+<span class="kw">const</span> env = <span class="kw">new</span> paypal.core.<span class="fn">LiveEnvironment</span>(
+  process.env.PAYPAL_CLIENT_ID,
+  process.env.PAYPAL_CLIENT_SECRET
+);
+<span class="kw">const</span> client = <span class="kw">new</span> paypal.core.<span class="fn">PayPalHttpClient</span>(env);
+
+app.<span class="fn">post</span>(<span class="str">'/create-order'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> request = <span class="kw">new</span> paypal.orders.<span class="fn">OrdersCreateRequest</span>();
+  request.prefer(<span class="str">"return=representation"</span>);
+  request.<span class="fn">requestBody</span>({
+    intent: <span class="str">'CAPTURE'</span>,
+    purchase_units: [{
+      amount: { currency_code: <span class="str">'USD'</span>, value: req.body.amount },
+      description: req.body.description,
+    }],
+  });
+
+  <span class="kw">const</span> order = <span class="kw">await</span> client.<span class="fn">execute</span>(request);
+  res.<span class="fn">json</span>({ id: order.result.id });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 3 — Client: PayPal Buttons</div>
+      <h3>Render the PayPal Smart Buttons</h3>
+<pre><div class="lang-tag">javascript</div>paypal.<span class="fn">Buttons</span>({
+  <span class="fn">createOrder</span>: <span class="kw">async</span> () => {
+    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/create-order'</span>, {
+      method: <span class="str">'POST'</span>,
+      headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+      body: <span class="fn">JSON.stringify</span>({ amount: <span class="str">'50.00'</span>, description: <span class="str">'Order #123'</span> }),
+    });
+    <span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="kw">return</span> data.id;
+  },
+  <span class="fn">onApprove</span>: <span class="kw">async</span> (data) => {
+    <span class="cm">// Capture the funds on the server</span>
+    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/capture-order/${data.orderID}`</span>, { method: <span class="str">'POST'</span> });
+    <span class="kw">const</span> details = <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="fn">alert</span>(<span class="str">`Transaction completed by ${details.payer.name.given_name}`</span>);
+  },
+}).<span class="fn">render</span>(<span class="str">'#paypal-button-container'</span>);</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 4 — Capture Funds (Server)</div>
+      <h3>Capture order to receive money</h3>
+<pre><div class="lang-tag">node.js</div>app.<span class="fn">post</span>(<span class="str">'/capture-order/:orderID'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> request = <span class="kw">new</span> paypal.orders.<span class="fn">OrdersCaptureRequest</span>(req.params.orderID);
+  request.<span class="fn">requestBody</span>({});
+
+  <span class="kw">const</span> capture = <span class="kw">await</span> client.<span class="fn">execute</span>(request);
+  <span class="kw">const</span> captureID = capture.result.purchase_units[<span class="num">0</span>]
+    .payments.captures[<span class="num">0</span>].id;
+
+  <span class="cm">// ✅ Store captureID in DB for refunds/disputes</span>
+  res.<span class="fn">json</span>(capture.result);
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 5 — Webhooks</div>
+      <h3>Listen for PAYMENT.CAPTURE.COMPLETED</h3>
+<pre><div class="lang-tag">node.js</div>app.<span class="fn">post</span>(<span class="str">'/paypal-webhook'</span>, express.<span class="fn">json</span>(), (req, res) => {
+  <span class="kw">const</span> event = req.body;
+
+  <span class="kw">switch</span> (event.event_type) {
+    <span class="kw">case</span> <span class="str">'PAYMENT.CAPTURE.COMPLETED'</span>:
+      <span class="cm">// Funds received — fulfill order</span>
+      console.<span class="fn">log</span>(<span class="str">'Captured:'</span>, event.resource.amount);
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="str">'PAYMENT.CAPTURE.DENIED'</span>:
+      <span class="cm">// Handle failure</span>
+      <span class="kw">break</span>;
+  }
+  res.<span class="fn">sendStatus</span>(<span class="num">200</span>);
+});</pre>
+      <div class="callout" style="border-color:#60a5fa">
+        <strong>💰 Payout to Bank</strong>
+        PayPal automatically deposits funds to your linked bank account. Manual: Go to Wallet → Transfer Money → Transfer to bank. Instant transfer: 1.75% fee (capped at $25). Standard: 0–1 business days free. Via REST API: use the <code>/v1/payments/payouts</code> endpoint for programmatic payouts.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SQUARE ============ -->
+<div class="platform" id="square">
+  <div class="platform-header">
+    <div class="platform-num">03</div>
+    <div class="platform-title">
+      <h2 style="color:#f59e0b">Square</h2>
+      <div class="subtitle">developer.squareup.com · Omnichannel: in-person, online & app payments</div>
+      <div class="platform-meta">
+        <span class="pill" style="color:#f59e0b;border-color:#f59e0b">In-Person POS</span>
+        <span class="pill" style="color:#f59e0b;border-color:#f59e0b">Web Payments SDK</span>
+        <span class="pill" style="color:#f59e0b;border-color:#f59e0b">Next-Day Payouts</span>
+        <span class="pill" style="color:#f59e0b;border-color:#f59e0b">Flat-Rate Pricing</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Step 1 — Install</div>
+      <h3>Square Node.js SDK</h3>
+<pre>npm install squareup</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 2 — Client: Web Payments SDK</div>
+      <h3>Initialize card form</h3>
+<pre><div class="lang-tag">javascript</div><span class="cm">// Load Square Web Payments SDK in your HTML</span>
+<span class="cm">// &lt;script src="https://sandbox.web.squarecdn.com/v1/square.js"&gt;&lt;/script&gt;</span>
+
+<span class="kw">const</span> payments = Square.<span class="fn">payments</span>(appId, locationId);
+<span class="kw">const</span> card = <span class="kw">await</span> payments.<span class="fn">card</span>();
+<span class="kw">await</span> card.<span class="fn">attach</span>(<span class="str">'#card-container'</span>);
+
+document.<span class="fn">getElementById</span>(<span class="str">'pay-btn'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> result = <span class="kw">await</span> card.<span class="fn">tokenize</span>();
+  <span class="kw">if</span> (result.status === <span class="str">'OK'</span>) {
+    <span class="cm">// Send result.token to your server</span>
+    <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/charge'</span>, {
+      method: <span class="str">'POST'</span>,
+      body: <span class="fn">JSON.stringify</span>({ token: result.token, amount: <span class="num">5000</span> }),
+      headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+    });
+  }
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 3 — Server: Create Payment</div>
+      <h3>Charge the card token</h3>
+<pre><div class="lang-tag">node.js</div><span class="kw">const</span> { Client, Environment } = <span class="fn">require</span>(<span class="str">'squareup'</span>);
+<span class="kw">const</span> { paymentsApi } = <span class="kw">new</span> <span class="fn">Client</span>({
+  accessToken: process.env.SQUARE_ACCESS_TOKEN,
+  environment: Environment.Production,
+});
+
+app.<span class="fn">post</span>(<span class="str">'/charge'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { token, amount } = req.body;
+
+  <span class="kw">const</span> { result } = <span class="kw">await</span> paymentsApi.<span class="fn">createPayment</span>({
+    sourceId: token,
+    idempotencyKey: crypto.<span class="fn">randomUUID</span>(),  <span class="cm">// prevent duplicate charges</span>
+    amountMoney: {
+      amount: BigInt(amount),  <span class="cm">// in cents</span>
+      currency: <span class="str">'USD'</span>,
+    },
+    locationId: process.env.SQUARE_LOCATION_ID,
+  });
+
+  res.<span class="fn">json</span>({ paymentId: result.payment.id, status: result.payment.status });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 4 — Webhooks</div>
+      <h3>payment.completed webhook</h3>
+<pre><div class="lang-tag">node.js</div>app.<span class="fn">post</span>(<span class="str">'/square-webhook'</span>, express.<span class="fn">json</span>(), (req, res) => {
+  <span class="cm">// Verify signature</span>
+  <span class="kw">const</span> sig = req.headers[<span class="str">'x-square-hmacsha256-signature'</span>];
+  <span class="cm">// Use Square's isValidWebhookEventSignature() for verification</span>
+
+  <span class="kw">const</span> { type, data } = req.body;
+  <span class="kw">if</span> (type === <span class="str">'payment.completed'</span>) {
+    <span class="cm">// ✅ Fulfill order</span>
+    console.<span class="fn">log</span>(<span class="str">'Payment:'</span>, data.object.payment.id);
+  }
+  res.<span class="fn">sendStatus</span>(<span class="num">200</span>);
+});</pre>
+      <div class="callout" style="border-color:#f59e0b">
+        <strong>💰 Payouts</strong>
+        Square deposits to your linked bank account automatically next business day. Enable Instant Transfers (1.75% fee) in the Square Dashboard → Payouts. No API payout endpoint needed for standard flow — Square handles it.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BRAINTREE ============ -->
+<div class="platform" id="braintree">
+  <div class="platform-header">
+    <div class="platform-num">04</div>
+    <div class="platform-title">
+      <h2 style="color:#a78bfa">Braintree</h2>
+      <div class="subtitle">developer.paypal.com/braintree · PayPal-owned, enterprise-grade</div>
+      <div class="platform-meta">
+        <span class="pill" style="color:#a78bfa;border-color:#a78bfa">PayPal + Venmo built-in</span>
+        <span class="pill" style="color:#a78bfa;border-color:#a78bfa">Vault (stored cards)</span>
+        <span class="pill" style="color:#a78bfa;border-color:#a78bfa">Recurring Billing</span>
+        <span class="pill" style="color:#a78bfa;border-color:#a78bfa">Drop-in UI</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Step 1 — Install</div>
+<pre>npm install braintree            <span class="cm"># server</span>
+npm install braintree-web        <span class="cm"># client</span></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 2 — Server: Generate Client Token</div>
+      <h3>Client token endpoint</h3>
+<pre><div class="lang-tag">node.js</div><span class="kw">const</span> braintree = <span class="fn">require</span>(<span class="str">'braintree'</span>);
+<span class="kw">const</span> gateway = <span class="kw">new</span> braintree.<span class="fn">BraintreeGateway</span>({
+  environment: braintree.Environment.Production,
+  merchantId: process.env.BT_MERCHANT_ID,
+  publicKey:  process.env.BT_PUBLIC_KEY,
+  privateKey: process.env.BT_PRIVATE_KEY,
+});
+
+app.<span class="fn">get</span>(<span class="str">'/client-token'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { clientToken } = <span class="kw">await</span> gateway.clientToken.<span class="fn">generate</span>({
+    customerId: req.session.customerId, <span class="cm">// optional — enables vaulted payment methods</span>
+  });
+  res.<span class="fn">json</span>({ token: clientToken });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 3 — Client: Drop-in UI</div>
+      <h3>Render Braintree Drop-in (vanilla JS)</h3>
+<pre><div class="lang-tag">javascript</div><span class="kw">import</span> dropin <span class="kw">from</span> <span class="str">'braintree-web-drop-in'</span>;
+
+<span class="kw">const</span> { token } = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/client-token'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>());
+
+<span class="kw">const</span> instance = <span class="kw">await</span> dropin.<span class="fn">create</span>({
+  authorization: token,
+  container: <span class="str">'#dropin-container'</span>,
+  paypal: { flow: <span class="str">'checkout'</span>, amount: <span class="str">'50.00'</span>, currency: <span class="str">'USD'</span> },
+  venmo: { allowNewBrowserTab: <span class="kw">false</span> },
+});
+
+document.<span class="fn">getElementById</span>(<span class="str">'pay-btn'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> { nonce } = <span class="kw">await</span> instance.<span class="fn">requestPaymentMethod</span>();
+  <span class="cm">// Send nonce to server</span>
+  <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/checkout'</span>, {
+    method: <span class="str">'POST'</span>,
+    body: <span class="fn">JSON.stringify</span>({ nonce, amount: <span class="str">'50.00'</span> }),
+    headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+  });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 4 — Server: Sale Transaction</div>
+      <h3>Process the payment nonce</h3>
+<pre><div class="lang-tag">node.js</div>app.<span class="fn">post</span>(<span class="str">'/checkout'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { nonce, amount } = req.body;
+
+  <span class="kw">const</span> result = <span class="kw">await</span> gateway.transaction.<span class="fn">sale</span>({
+    amount,
+    paymentMethodNonce: nonce,
+    options: {
+      submitForSettlement: <span class="kw">true</span>,  <span class="cm">// immediately settle (receive funds)</span>
+    },
+    customFields: { order_id: req.body.orderId },
+  });
+
+  <span class="kw">if</span> (result.success) {
+    <span class="cm">// ✅ Funds captured — result.transaction.id</span>
+    res.<span class="fn">json</span>({ id: result.transaction.id, status: result.transaction.status });
+  } <span class="kw">else</span> {
+    res.<span class="fn">status</span>(<span class="num">422</span>).<span class="fn">json</span>({ error: result.message });
+  }
+});</pre>
+      <div class="callout" style="border-color:#a78bfa">
+        <strong>💰 Payouts</strong>
+        Braintree settles funds to your merchant account within 2 business days. Payouts go to your linked bank automatically. Use the Braintree Control Panel → Settlements to monitor. API access via <code>gateway.settlement.batch</code> to query settlement records.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AUTHORIZE.NET ============ -->
+<div class="platform" id="authorize">
+  <div class="platform-header">
+    <div class="platform-num">05</div>
+    <div class="platform-title">
+      <h2 style="color:#fb7185">Authorize.net</h2>
+      <div class="subtitle">developer.authorize.net · Visa-owned, rock-solid B2B gateway since 1996</div>
+      <div class="platform-meta">
+        <span class="pill" style="color:#fb7185;border-color:#fb7185">CIM (Stored Profiles)</span>
+        <span class="pill" style="color:#fb7185;border-color:#fb7185">ARB (Recurring)</span>
+        <span class="pill" style="color:#fb7185;border-color:#fb7185">eCheck / ACH</span>
+        <span class="pill" style="color:#fb7185;border-color:#fb7185">Advanced Fraud Detection</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-label">Step 1 — Install</div>
+<pre>npm install authorizenet</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 2 — Client: Accept.js (Hosted Fields)</div>
+      <h3>Secure card tokenization via Accept.js</h3>
+<pre><div class="lang-tag">html</div>&lt;script src="https://js.authorize.net/v1/Accept.js" charset="utf-8"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+<span class="kw">function</span> <span class="fn">sendPaymentDataToAnet</span>() {
+  <span class="kw">const</span> authData = {
+    clientKey: <span class="str">'YOUR_PUBLIC_CLIENT_KEY'</span>,
+    apiLoginID: <span class="str">'YOUR_API_LOGIN_ID'</span>,
+  };
+  <span class="kw">const</span> cardData = {
+    cardNumber:    document.<span class="fn">getElementById</span>(<span class="str">'cardNumber'</span>).value,
+    month:         document.<span class="fn">getElementById</span>(<span class="str">'expMonth'</span>).value,
+    year:          document.<span class="fn">getElementById</span>(<span class="str">'expYear'</span>).value,
+    cardCode:      document.<span class="fn">getElementById</span>(<span class="str">'cvv'</span>).value,
+  };
+  Accept.<span class="fn">dispatchData</span>({ authData, cardData }, <span class="fn">responseHandler</span>);
+}
+
+<span class="kw">function</span> <span class="fn">responseHandler</span>(response) {
+  <span class="kw">if</span> (response.messages.resultCode === <span class="str">'Ok'</span>) {
+    <span class="kw">const</span> { opaqueData } = response;  <span class="cm">// dataDescriptor + dataValue → send to server</span>
+    <span class="fn">sendToServer</span>(opaqueData);
+  }
+}
+&lt;/script&gt;</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 3 — Server: Charge via SDK</div>
+      <h3>Create transaction (Node.js)</h3>
+<pre><div class="lang-tag">node.js</div><span class="kw">const</span> ApiContracts = <span class="fn">require</span>(<span class="str">'authorizenet'</span>).APIContracts;
+<span class="kw">const</span> ApiControllers = <span class="fn">require</span>(<span class="str">'authorizenet'</span>).APIControllers;
+
+app.<span class="fn">post</span>(<span class="str">'/charge'</span>, (req, res) => {
+  <span class="kw">const</span> { dataDescriptor, dataValue, amount } = req.body;
+
+  <span class="kw">const</span> merchantAuthType = <span class="kw">new</span> ApiContracts.<span class="fn">MerchantAuthenticationType</span>();
+  merchantAuthType.<span class="fn">setName</span>(process.env.ANET_API_LOGIN_ID);
+  merchantAuthType.<span class="fn">setTransactionKey</span>(process.env.ANET_TRANSACTION_KEY);
+
+  <span class="kw">const</span> opaqueData = <span class="kw">new</span> ApiContracts.<span class="fn">OpaqueDataType</span>();
+  opaqueData.<span class="fn">setDataDescriptor</span>(dataDescriptor);
+  opaqueData.<span class="fn">setDataValue</span>(dataValue);
+
+  <span class="kw">const</span> paymentType = <span class="kw">new</span> ApiContracts.<span class="fn">PaymentType</span>();
+  paymentType.<span class="fn">setOpaqueData</span>(opaqueData);
+
+  <span class="kw">const</span> transactionSetting = <span class="kw">new</span> ApiContracts.<span class="fn">TransactionRequestType</span>();
+  transactionSetting.<span class="fn">setTransactionType</span>(
+    ApiContracts.TransactionTypeEnum.<span class="fn">AUTHCAPTURETRANSACTION</span>
+  );
+  transactionSetting.<span class="fn">setPayment</span>(paymentType);
+  transactionSetting.<span class="fn">setAmount</span>(amount);
+
+  <span class="kw">const</span> createRequest = <span class="kw">new</span> ApiContracts.<span class="fn">CreateTransactionRequest</span>();
+  createRequest.<span class="fn">setMerchantAuthentication</span>(merchantAuthType);
+  createRequest.<span class="fn">setTransactionRequest</span>(transactionSetting);
+
+  <span class="kw">const</span> ctrl = <span class="kw">new</span> ApiControllers.<span class="fn">CreateTransactionController</span>(createRequest.<span class="fn">getJSON</span>());
+  ctrl.<span class="fn">setEnvironment</span>(ApiContracts.Constants.endpoint.production);
+  ctrl.<span class="fn">execute</span>(() => {
+    <span class="kw">const</span> apiResponse = ctrl.<span class="fn">getResponse</span>();
+    <span class="kw">const</span> response = <span class="kw">new</span> ApiContracts.<span class="fn">CreateTransactionResponse</span>(apiResponse);
+
+    <span class="kw">if</span> (response.getMessages().<span class="fn">getResultCode</span>() === ApiContracts.MessageTypeEnum.OK) {
+      <span class="cm">// ✅ Transaction approved — store transId</span>
+      res.<span class="fn">json</span>({ transId: response.<span class="fn">getTransactionResponse</span>().<span class="fn">getTransId</span>() });
+    } <span class="kw">else</span> {
+      res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ error: response.<span class="fn">getMessages</span>().<span class="fn">getMessage</span>()[<span class="num">0</span>].<span class="fn">getText</span>() });
+    }
+  });
+});</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-label">Step 4 — Webhooks (Silent Post)</div>
+      <h3>Authorize.net Webhook Listener</h3>
+<pre><div class="lang-tag">node.js</div><span class="cm">// Register at: Account → Settings → Webhooks</span>
+app.<span class="fn">post</span>(<span class="str">'/anet-webhook'</span>, express.<span class="fn">json</span>(), (req, res) => {
+  <span class="cm">// Verify X-ANET-Signature header with your Signature Key</span>
+  <span class="kw">const</span> { eventType, payload } = req.body;
+
+  <span class="kw">switch</span> (eventType) {
+    <span class="kw">case</span> <span class="str">'net.authorize.payment.authcapture.created'</span>:
+      <span class="cm">// ✅ Payment captured — funds being settled</span>
+      console.<span class="fn">log</span>(<span class="str">'Trans ID:'</span>, payload.id);
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="str">'net.authorize.payment.void.created'</span>:
+      <span class="cm">// Handle void</span>
+      <span class="kw">break</span>;
+  }
+  res.<span class="fn">sendStatus</span>(<span class="num">200</span>);
+});</pre>
+      <div class="callout" style="border-color:#fb7185">
+        <strong>💰 Receiving Funds</strong>
+        Authorize.net settles funds to your linked merchant account in 2–5 business days through your acquiring bank. The platform does not handle payouts directly — you configure your bank account via the merchant control panel. For ACH/eCheck payments, settlement takes 3–5 business days.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECURITY FOOTER -->
+<div style="max-width:1000px;margin:0 auto 4rem;padding:0 2rem">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:1rem">Universal Security Checklist</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;font-size:.85rem">
+      <div>
+        <div style="color:#6ee7b7;font-weight:700;margin-bottom:.5rem">✓ Always Do</div>
+        <ul style="color:var(--muted);list-style:none;display:flex;flex-direction:column;gap:.4rem">
+          <li>→ Store API keys in environment variables only</li>
+          <li>→ Verify all webhooks with HMAC signatures</li>
+          <li>→ Use idempotency keys to prevent duplicate charges</li>
+          <li>→ Enable TLS/HTTPS on all endpoints</li>
+          <li>→ Log all transactions with timestamps</li>
+          <li>→ Store transaction IDs for every charge</li>
+        </ul>
+      </div>
+      <div>
+        <div style="color:#fb7185;font-weight:700;margin-bottom:.5rem">✗ Never Do</div>
+        <ul style="color:var(--muted);list-style:none;display:flex;flex-direction:column;gap:.4rem">
+          <li>→ Expose secret/private API keys to the client</li>
+          <li>→ Store raw card numbers in your DB (PCI violation)</li>
+          <li>→ Trust client-side payment confirmation alone</li>
+          <li>→ Skip webhook signature verification</li>
+          <li>→ Process payments without amount validation server-side</li>
+          <li>→ Use test keys in production</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Payments Integration Docs · Generated March 2026 · Always verify with official platform documentation
+</footer>
+</body>
+</html>
