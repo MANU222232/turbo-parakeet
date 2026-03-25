@@ -58,7 +58,7 @@ export default function Step2({ onNext, onPrev }: { onNext: () => void, onPrev: 
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600/80">Diagnostic Mode</span>
           </div>
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-tight">What's<br/>Wrong?</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-tight">What&apos;s<br/>Wrong?</h1>
           <p className="text-xs text-slate-400 font-medium tracking-tight">Select everything that applies.</p>
         </div>
 

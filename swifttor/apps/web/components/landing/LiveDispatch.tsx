@@ -88,7 +88,7 @@ export default function LiveDispatch() {
               </h2>
             </div>
             <p className="text-slate-400 max-w-sm text-sm">
-              Our drivers upload photos from every job to ensure transparency and safety. Here's what's happening on the road right now.
+              Our drivers upload photos from every job to ensure transparency and safety. Here&apos;s what&apos;s happening on the road right now.
             </p>
           </div>
 

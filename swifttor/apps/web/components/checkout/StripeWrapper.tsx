@@ -75,7 +75,7 @@ function CheckoutForm({ onConfirm, amountCents, hideButton }: { onConfirm: (id: 
         }
       }
     });
-  }, [stripe]);
+  }, [stripe, amountCents, onConfirm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -46,7 +46,12 @@ export default function AdminPage() {
   const [suggestedPrices, setSuggestedPrices] = useState<Record<string, string>>({});
   const [adminReplies, setAdminReplies] = useState<Record<string, string>>({});
   const [driverChats, setDriverChats] = useState<any[]>([]);
-  const [activeDriverChatRequestId, setActiveDriverChatRequestId] = useState<string | null>(null);
+  const [activeDriverChatRequestId, _setActiveDriverChatRequestId] = useState<string | null>(null);
+  const activeDriverChatRequestIdRef = useRef<string | null>(null);
+  const setActiveDriverChatRequestId = (val: string | null) => {
+    activeDriverChatRequestIdRef.current = val;
+    _setActiveDriverChatRequestId(val);
+  };
   const [driverChatInput, setDriverChatInput] = useState('');
   const [email, setEmail] = useState('');
   const [customPhotoUrls, setCustomPhotoUrls] = useState<Record<string, string>>({});
@@ -65,10 +70,9 @@ export default function AdminPage() {
       const isAllowed = session?.user?.email === ADMIN_EMAIL || (session?.user as any)?.role === 'admin';
       if (!isAllowed) {
         console.warn('Unauthorized admin access attempt:', session?.user?.email);
-        // In strict mode, redirect to / or access-denied
       }
     }
-  }, [authStatus, session, ADMIN_EMAIL]);
+  }, [authStatus, session]);
 
   const POP_SOUND = "https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3";
   const RECOVERY_PHOTOS = [
@@ -195,7 +199,7 @@ export default function AdminPage() {
     });
 
     socketRef.current.on('new_chat_message', (chat: any) => {
-      if (chat.order_id === activeDriverChatRequestId) {
+      if (chat.order_id === activeDriverChatRequestIdRef.current) {
         setDriverChats(prev => [...prev, chat]);
       }
       // Increment unread count logic could go here

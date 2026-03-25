@@ -74,7 +74,7 @@ export default function SupermarketPanel({ onClose, shopId, etaMins }: { onClose
           <Info className="flex-shrink-0 text-yellow-500 mt-0.5" size={20} />
           <div>
             <p className="text-sm font-black text-yellow-500 uppercase tracking-tight italic">Hungry? Long Wait Ahead.</p>
-            <p className="text-xs text-slate-400 mt-1 font-medium">Provider ETA is {etaMins}m. Add our "Meal Bundle" (Sandwich + Drink) for $8.00?</p>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Provider ETA is {etaMins}m. Add our &quot;Meal Bundle&quot; (Sandwich + Drink) for $8.00?</p>
             <button 
               onClick={() => handleAdd({ id: 'bundle_meal', name: 'Meal Bundle', price: 8 })}
               className="mt-3 text-[10px] font-black uppercase tracking-widest bg-yellow-500 hover:bg-yellow-400 text-slate-950 px-4 py-2 rounded-full transition-all active:scale-95 shadow-md"

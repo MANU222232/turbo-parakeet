@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, CreditCard, Banknote, ShieldCheck, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,7 +29,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Derive cart totals exactly as Stripe expects 
-  const totalAmount = cart.total * 1.08; 
+  const totalAmount = useMemo(() => cart.total * 1.08, [cart.total]); 
 
   // Auto-init Stripe for seamless card UX
   // ✅ AGENT: Enhanced error handling and proper response parsing
@@ -78,7 +78,7 @@ export default function CheckoutPage() {
   // Find the selected shop
   const selectedShop = SHOPS.find(s => s.id === shopId) || SHOPS[0];
 
-  const handleConfirmOrder = async (intentId?: string) => {
+  const handleConfirmOrder = useCallback(async (intentId?: string) => {
     setIsProcessing(true);
     try {
       // ✅ Real backend confirm
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [totalAmount, emergency.name, emergency.lat, emergency.lng, emergency.address, selectedShop.id, router]);
 
   const lineItems = cart.items.map(item => ({
     id: item.id || Math.random().toString(),

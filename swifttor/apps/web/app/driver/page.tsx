@@ -14,7 +14,9 @@ import {
   DollarSign,
   Clock,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  MessageCircle,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -260,7 +262,7 @@ export default function DriverDashboard() {
            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[60px] -translate-y-1/2 translate-x-1/2" />
            <div className="flex justify-between items-end">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Today's Earnings</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Today&apos;s Earnings</p>
                 <h2 className="text-5xl font-black italic tracking-tighter text-white">${earnings.today.toFixed(2)}</h2>
               </div>
               <div className="text-right">

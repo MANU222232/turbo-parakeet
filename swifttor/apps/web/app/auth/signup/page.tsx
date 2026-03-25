@@ -380,7 +380,7 @@ export default function SignUpPage() {
                   disabled={isLoading}
                   className="w-full py-3 text-emerald-400 font-bold text-sm hover:text-emerald-300 transition-colors"
                 >
-                  Didn't receive the code? Resend
+                  Didn&apos;t receive the code? Resend
                 </button>
               </motion.form>
             )}

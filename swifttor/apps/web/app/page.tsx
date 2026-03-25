@@ -112,7 +112,7 @@ export default function LandingPage() {
               Stranded on <br />
               the Road?
             </h2>
-            <p className="text-lg text-emerald-300 font-bold">We're 15 minutes away.</p>
+            <p className="text-lg text-emerald-300 font-bold">We&apos;re 15 minutes away.</p>
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function LandingPage() {
 
               <h1 className="text-5xl lg:text-7xl font-black italic uppercase tracking-tighter text-slate-900 leading-[0.9] mb-8">
                 Stranded?<br />
-                <span className="text-emerald-500">We've Got Your Back.</span>
+                <span className="text-emerald-500">We&apos;ve Got Your Back.</span>
               </h1>
 
               <p className="text-lg text-slate-600 leading-relaxed mb-4 max-w-lg">
@@ -314,7 +314,7 @@ export default function LandingPage() {
         <div className="max-w-xl mx-auto px-4">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4">24/7 Dispatch</p>
           <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-6">Stranded Right Now?</h2>
-          <p className="text-slate-400 mb-8">Don't wait. We dispatch the nearest driver immediately.</p>
+          <p className="text-slate-400 mb-8">Don&apos;t wait. We dispatch the nearest driver immediately.</p>
           <button
             onClick={() => router.push('/emergency-report')}
             className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black italic uppercase tracking-tight transition-all shadow-emerald active:scale-95"

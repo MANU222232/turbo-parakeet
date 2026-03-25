@@ -26,7 +26,7 @@ export default function Step3({ onPrev }: { onPrev: () => void }) {
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600/80">Analysis Complete</span>
           </div>
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-tight">We're<br/>Ready.</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-tight">We&apos;re<br/>Ready.</h1>
           <p className="text-xs text-slate-400 font-medium tracking-tight">Choose your specialized recovery protocol.</p>
         </div>
 
