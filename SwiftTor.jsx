@@ -587,7 +587,6 @@ const ShopDrawer = ({ shop, onClose, onBook }) => {
                     <div style={{ fontSize: 11, color: C.muted }}>{svc.desc}</div>
                   </div>
                 </div>
-                <MonoNum size={16} color={sel ? C.orange : C.text}>${svc.base}</MonoNum>
               </div>
             );
           })}
@@ -616,7 +615,6 @@ const ShopDrawer = ({ shop, onClose, onBook }) => {
                   }}>
                     <div style={{ fontSize: 26, marginBottom: 4 }}>{item.emoji}</div>
                     <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 2 }}>{item.name}</div>
-                    <MonoNum size={13} color={inCart ? C.orange : C.muted}>${item.price.toFixed(2)}</MonoNum>
                   </div>
                 );
               })}
@@ -626,22 +624,22 @@ const ShopDrawer = ({ shop, onClose, onBook }) => {
           {/* Cart summary + Book */}
           {canBook && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 9, padding: 16, marginTop: 14 }} className="fi">
-              {selectedSvc.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13, color: C.muted }}>
-                  <span>Services</span><MonoNum size={13} color={C.text}>${svcTotal}</MonoNum>
-                </div>
-              )}
-              {cartTotal > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13, color: C.muted }}>
-                  <span>Store Items ({cart.length})</span><MonoNum size={13} color={C.text}>${cartTotal.toFixed(2)}</MonoNum>
-                </div>
-              )}
-              <Divider style={{ margin: "10px 0" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <span style={{ fontWeight: 700, fontSize: 16 }}>Total</span>
-                <MonoNum size={24} color={C.orange}>${total.toFixed(2)}</MonoNum>
-              </div>
-              <Btn full size="lg" onClick={() => onBook({ shop, services: selectedSvc, cart, total })}>
+
+              <Btn full size="lg" onClick={() => {
+                // Build WhatsApp message
+                const svcNames = selectedSvc.map(s => s.name).join(', ');
+                const message = encodeURIComponent(
+                  `Hi! I'd like to book a driver.\n\n` +
+                  `Driver: ${shop.driver}\n` +
+                  `Company: ${shop.name}\n` +
+                  `Services: ${svcNames}\n` +
+                  `Location: [Your location]\n` +
+                  `Please confirm availability and pricing.`
+                );
+                
+                // Open WhatsApp with pre-filled message
+                window.open(`https://wa.me/?text=${message}`, '_blank');
+              }}>
                 Book {shop.driver} →
               </Btn>
             </div>

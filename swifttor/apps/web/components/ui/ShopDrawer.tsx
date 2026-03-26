@@ -60,18 +60,25 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
   const canBook = selectedServices.length > 0;
 
   const handleBook = () => {
-    cart.clearCart();
-    cart.setShopId(shop.id);
-
-    SERVICES.filter(s => selectedServices.includes(s.id)).forEach(s => {
-      cart.addItem({ id: s.id, name: s.name, price: s.price, type: 'service' });
-    });
-
-    STORE_ITEMS.filter(i => cartItems.includes(i.id)).forEach(i => {
-      cart.addItem({ id: i.id, name: i.name, price: i.price, type: 'product' });
-    });
-
-    router.push(`/checkout?shop=${shop.id}`);
+    // Build WhatsApp message
+    const selectedSvcNames = SERVICES
+      .filter(s => selectedServices.includes(s.id))
+      .map(s => s.name)
+      .join(', ');
+    
+    const message = encodeURIComponent(
+      `Hi! I'd like to book a driver.\n\n` +
+      `Driver: ${shop.driver}\n` +
+      `Company: ${shop.name}\n` +
+      `Services: ${selectedSvcNames}\n` +
+      `Location: [Your location]\n` +
+      `Please confirm availability and pricing.`
+    );
+    
+    // Open WhatsApp with pre-filled message
+    window.open(`https://wa.me/?text=${message}`, '_blank');
+    
+    onClose();
   };
 
   return (
@@ -169,9 +176,6 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-black font-mono ${sel ? 'text-emerald-600' : 'text-slate-700'}`}>
-                        ${svc.price}
-                      </span>
                       {sel && (
                         <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
                           <Check size={11} color="white" strokeWidth={3} />
@@ -219,10 +223,7 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                         }`}
                       >
                         <div className="text-2xl mb-1">{item.emoji}</div>
-                        <div className="text-xs font-bold text-slate-800 mb-0.5">{item.name}</div>
-                        <div className={`text-xs font-black font-mono ${inCart ? 'text-emerald-600' : 'text-slate-500'}`}>
-                          ${item.price.toFixed(2)}
-                        </div>
+                        <div className="text-xs font-bold text-slate-800">{item.name}</div>
                       </button>
                     );
                   })}
@@ -240,23 +241,7 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                 exit={{ opacity: 0, y: 20 }}
                 className="mt-5 bg-slate-50 border border-slate-200 rounded-2xl p-4"
               >
-                {svcTotal > 0 && (
-                  <div className="flex justify-between text-sm text-slate-500 mb-2">
-                    <span>Services</span>
-                    <span className="font-black font-mono text-slate-800">${svcTotal.toFixed(2)}</span>
-                  </div>
-                )}
-                {storeTotal > 0 && (
-                  <div className="flex justify-between text-sm text-slate-500 mb-2">
-                    <span>Store Items ({cartItems.length})</span>
-                    <span className="font-black font-mono text-slate-800">${storeTotal.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="h-px bg-slate-200 my-3" />
-                <div className="flex justify-between items-center mb-4">
-                  <span className="font-bold text-slate-900">Total</span>
-                  <span className="text-xl font-black font-mono text-emerald-600">${grandTotal.toFixed(2)}</span>
-                </div>
+
                 <button
                   onClick={handleBook}
                   className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-black italic uppercase tracking-wide rounded-2xl shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.97]"
