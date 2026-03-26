@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Truck, Shield, Clock, Star, ChevronRight, MapPin } from 'lucide-react';
@@ -12,28 +11,6 @@ import LiveTicker from '@/components/landing/LiveTicker';
 
 export default function LandingPage() {
   const router = useRouter();
-  const [onlineDrivers, setOnlineDrivers] = useState(0);
-  const [rescuedToday, setRescuedToday] = useState(147);
-
-  // Animate counter from 0 → 147
-  useEffect(() => {
-    let startTs: number | null = null;
-    const target = 147, duration = 1500;
-    const step = (ts: number) => {
-      if (!startTs) startTs = ts;
-      const p = Math.min((ts - startTs) / duration, 1);
-      const ease = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-      setOnlineDrivers(Math.floor(ease * target));
-      if (p < 1) window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame(step);
-  }, []);
-
-  // Slowly increment rescued count every 4s
-  useEffect(() => {
-    const id = setInterval(() => setRescuedToday(c => c + Math.floor(Math.random() * 2)), 4000);
-    return () => clearInterval(id);
-  }, []);
 
   const services = [
     { id: 'towing',   icon: <Truck size={26} />,   name: 'Emergency Towing',    desc: '24/7 flatbed and wheel-lift towing for all vehicle types.' },
@@ -46,9 +23,13 @@ export default function LandingPage() {
     <main className="min-h-screen bg-slate-50 font-sans text-slate-900">
 
       {/* ── Flash offer banner ── */}
-      <div className="bg-slate-900 py-2 text-center text-[10px] font-black italic uppercase tracking-[0.2em] text-white">
-        ⚡ Flash Offer: 15% Off All Battery Jumpstarts Today! Use Code:&nbsp;
-        <span className="text-emerald-400">JUMP15</span>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 animate-shimmer opacity-40" />
+        <div className="relative bg-slate-900/95 py-2 text-center text-[10px] font-black italic uppercase tracking-[0.2em] text-white">
+          <span className="text-emerald-400">⚡ Flash Offer</span>:
+          15% Off All Battery Jumpstarts Today! Use Code:&nbsp;
+          <span className="text-amber-300">JUMP15</span>
+        </div>
       </div>
 
       {/* ── Navbar ── */}
@@ -103,13 +84,26 @@ export default function LandingPage() {
         {/* Overlay gradient for text contrast */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/50 to-transparent" />
         {/* Overlay text */}
-        <div className="absolute inset-0 flex flex-col items-start justify-center px-6 md:px-12">
-          <div className="max-w-md">
-            <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-white mb-4 leading-[0.9]">
+        <div className="absolute inset-0 flex items-end px-6 md:px-12 pb-12">
+          <div className="max-w-2xl w-full">
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 text-white px-4 py-2 rounded-full">
+                <span className="inline-flex w-2 h-2 rounded-full bg-emerald-400" />
+                Night driving
+              </div>
+              <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-4 py-2 rounded-full">
+                <Clock size={14} />
+                Live ETA updates
+              </div>
+            </div>
+
+            <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white leading-[0.9] mb-4">
               Stranded on <br />
               the Road?
             </h2>
-            <p className="text-lg text-emerald-300 font-bold">We&apos;re 15 minutes away.</p>
+            <p className="text-base md:text-lg text-slate-100 font-bold">
+              Live ETA updates • Upfront pricing • Dispatching now.
+            </p>
           </div>
         </div>
       </div>
@@ -127,39 +121,54 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-            >              {/* Guarantee badge */}
-              <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-full text-xs font-black mb-4 border border-red-200">
-                <span>🏆</span> 30-MIN OR 50% OFF GUARANTEE
+            >
+              {/* Guarantee badge */}
+              <div className="inline-flex items-center gap-2 bg-white/70 text-slate-900 px-4 py-2 rounded-full text-xs font-black mb-4 border border-slate-200 shadow-sm">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white">
+                  🏆
+                </span>
+                FAST ARRIVAL PROMISE
               </div>
               {/* ETA pill */}
               <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-bold mb-6">
-                <Clock size={14} /> 15 Min Average Arrival Time
+                <Clock size={14} /> Live ETA updates
               </div>
 
               <h1 className="text-5xl lg:text-7xl font-black italic uppercase tracking-tighter text-slate-900 leading-[0.9] mb-8">
                 Stranded?<br />
-                <span className="text-emerald-500">We&apos;ve Got Your Back.</span>
+                <span className="text-emerald-500">Nearest Driver, Fast.</span>
               </h1>
 
               <p className="text-lg text-slate-600 leading-relaxed mb-4 max-w-lg">
-                Professional towing and roadside assistance across the nation.
-                Fast, reliable, and transparent pricing.
+                SwiftTow dispatches certified towing and roadside help with live tracking and upfront pricing.
+                No surprises. Just fast support when you need it most.
               </p>
-              <p className="font-bold text-emerald-600 mb-8">For immediate dispatch, WhatsApp us below.</p>
+              <p className="font-bold text-emerald-600 mb-8">
+                Need help right now? Tap WhatsApp and we&apos;ll match you in seconds.
+              </p>
 
               {/* Stats Bar (Borrowed from SwiftTor reference) */}
               <div className="grid grid-cols-3 gap-4 mb-10 bg-white/50 backdrop-blur-sm border border-slate-200 rounded-2xl p-6 shadow-sm">
                 <div className="text-center border-r border-slate-100">
-                  <div className="text-2xl font-black text-slate-900 font-mono italic">{rescuedToday}</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Rescued Today</div>
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 mx-auto mb-3 flex items-center justify-center">
+                    <Truck size={22} />
+                  </div>
+                  <div className="text-sm font-black text-slate-900 font-mono italic uppercase">Dispatching Now</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Nearby drivers routed</div>
                 </div>
                 <div className="text-center border-r border-slate-100">
-                  <div className="text-2xl font-black text-slate-900 font-mono italic">18m</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Avg Response</div>
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 text-slate-900 mx-auto mb-3 flex items-center justify-center">
+                    <Clock size={22} />
+                  </div>
+                  <div className="text-sm font-black text-slate-900 font-mono italic uppercase">Live Tracking</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ETA + status updates</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-black text-slate-900 font-mono italic">98%</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Completion</div>
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 text-emerald-700 mx-auto mb-3 flex items-center justify-center">
+                    <Shield size={22} />
+                  </div>
+                  <div className="text-sm font-black text-slate-900 font-mono italic uppercase">Certified Support</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Upfront + transparent</div>
                 </div>
               </div>
 
@@ -176,11 +185,17 @@ export default function LandingPage() {
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-3">
                     {[11,12,13,14].map(i => (
-                      <img key={i} src={`https://i.pravatar.cc/100?img=${i}`} className="w-11 h-11 rounded-full border-4 border-white shadow-sm object-cover" alt="user" referrerPolicy="no-referrer" />
+                      <img
+                        key={i}
+                        src={`https://i.pravatar.cc/100?img=${i}`}
+                        className="w-11 h-11 rounded-full border-4 border-white shadow-sm object-cover"
+                        alt={`Happy driver ${i}`}
+                        referrerPolicy="no-referrer"
+                      />
                     ))}
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">10k+ Happy Drivers</p>
+                    <p className="font-bold text-slate-900 text-sm">Thousands of happy drivers</p>
                     <div className="flex text-amber-400 mt-0.5">
                       {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
                     </div>
@@ -207,12 +222,16 @@ export default function LandingPage() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 font-normal normal-case not-italic">Step 1 of 3</p>
+                  <p className="text-xs text-slate-400 font-normal normal-case not-italic">
+                    Step 1 of 3 • Choose a service to get matched instantly.
+                  </p>
                 </div>
 
                 {/* Service grid */}
                 <div className="p-6">
-                  <p className="text-sm font-semibold text-slate-300 mb-5 normal-case not-italic font-sans">What service do you need?</p>
+                  <p className="text-sm font-semibold text-slate-300 mb-5 normal-case not-italic font-sans">
+                    What service do you need?
+                  </p>
                   <div className="grid grid-cols-2 gap-3">
                     {services.map(svc => (
                       <button
@@ -235,7 +254,7 @@ export default function LandingPage() {
                     onClick={() => router.push('/emergency-report')}
                     className="mt-5 w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm uppercase italic tracking-wide transition-all active:scale-95 shadow shadow-emerald-500/30"
                   >
-                    Continue →
+                    Continue to Dispatch →
                   </button>
                 </div>
               </div>
@@ -249,14 +268,17 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { value: `${onlineDrivers}`, label: 'Drivers Online Now', color: 'text-emerald-500' },
-              { value: '15 min', label: 'Avg Arrival Time', color: 'text-slate-900' },
-              { value: '10k+', label: 'Happy Customers', color: 'text-slate-900' },
-              { value: '4.9★',  label: 'Customer Rating', color: 'text-amber-500' },
+              { icon: <Truck size={20} />, title: 'Drivers on standby', subtitle: 'Nearby certified dispatch', color: 'text-emerald-500' },
+              { icon: <Clock size={20} />, title: 'Live ETA updates', subtitle: 'Real-time routing info', color: 'text-slate-900' },
+              { icon: <Star size={20} />, title: 'Top-rated recoveries', subtitle: 'Customer-loved service', color: 'text-amber-500' },
+              { icon: <Shield size={20} />, title: '24/7 emergency support', subtitle: 'Always on call', color: 'text-slate-900' },
             ].map((s, i) => (
-              <div key={i}>
-                <p className={`text-3xl font-black italic uppercase ${s.color}`}>{s.value}</p>
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">{s.label}</p>
+              <div key={i} className="flex flex-col items-center">
+                <div className={`w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center ${s.color}`}>
+                  {s.icon}
+                </div>
+                <p className="mt-4 text-sm font-black italic uppercase text-slate-900">{s.title}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">{s.subtitle}</p>
               </div>
             ))}
           </div>
@@ -275,7 +297,12 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-500 mb-3">Our Services</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">Everything You Need To Get Back On The Road</h2>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">
+              Everything You Need To Get Back On The Road
+            </h2>
+            <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
+              Pick what you need. We&apos;ll route the closest certified driver for the job.
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((svc, i) => (
@@ -299,6 +326,70 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── How it works ── */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
+            <div className="max-w-xl">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">3-Step Dispatch</p>
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">
+                Dispatch in minutes, not hours.
+              </h2>
+            </div>
+            <p className="text-slate-600 max-w-md">
+              Track the driver in real time, confirm updates, and get help without the stress.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                step: 1,
+                icon: <MapPin size={18} />,
+                title: "Choose your service",
+                desc: "Emergency towing, lockout, jumpstart, or fuel delivery.",
+              },
+              {
+                step: 2,
+                icon: <Shield size={18} />,
+                title: "We match you instantly",
+                desc: "Closest certified driver routed for your exact needs.",
+              },
+              {
+                step: 3,
+                icon: <Truck size={18} />,
+                title: "Track your recovery",
+                desc: "Live ETA + updates until you&apos;re back on the road.",
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: item.step * 0.06 }}
+                viewport={{ once: true }}
+                className="card p-8 rounded-[2rem] border-slate-100"
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black italic">
+                    {item.step}
+                  </div>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    {item.icon}
+                  </div>
+                </div>
+                <h3 className="text-xl font-black italic uppercase tracking-tight text-slate-900 mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  {item.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Testimonials ── */}
       <Testimonials />
 
@@ -310,8 +401,10 @@ export default function LandingPage() {
       <section className="py-20 bg-slate-900 text-white text-center">
         <div className="max-w-xl mx-auto px-4">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4">24/7 Dispatch</p>
-          <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-6">Stranded Right Now?</h2>
-          <p className="text-slate-400 mb-8">Don&apos;t wait. We dispatch the nearest driver immediately.</p>
+          <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-6">Still on the Roadside?</h2>
+          <p className="text-slate-400 mb-8">
+            Don&apos;t wait. We dispatch the nearest certified driver immediately and keep you updated.
+          </p>
           <button
             onClick={() => router.push('/emergency-report')}
             className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black italic uppercase tracking-tight transition-all shadow-emerald active:scale-95"

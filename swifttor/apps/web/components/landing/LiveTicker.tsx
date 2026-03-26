@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap } from 'lucide-react';
 
 const TICKER_ITEMS = [
-  "Verified 5-Star Roadside Assistance",
-  "15-Minute Average ETA in the Region",
-  "Certified Professional Recovery Team",
-  "24/7 Emergency Support Always Active",
-  "Largest Fleet Coverage in the Region"
+  "Upfront pricing. No surprises.",
+  "Fast dispatch with live ETA updates.",
+  "Certified pros on every dispatch.",
+  "24/7 emergency support, always active.",
+  "Live tracking from driver to you."
 ];
 
 export default function LiveTicker() {

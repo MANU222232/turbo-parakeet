@@ -1,8 +1,6 @@
 'use client';
 
 import { GoogleMap, MarkerF } from '@react-google-maps/api';
-import { Truck } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 // Generic sleek silver map style
 const MAP_STYLES = [
@@ -26,24 +24,47 @@ const MAP_STYLES = [
   { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] }
 ];
 
-const DEFAULT_CENTER = { lat: 37.7749, lng: -122.4194 }; // Using a generic center
+type LatLng = { lat: number; lng: number };
+type DummyDriver = { id: number; position: LatLng };
 
-const MOCK_DRIVERS = [
-  { id: 1, position: { lat: 37.7850, lng: -122.4100 } },
-  { id: 2, position: { lat: 37.7650, lng: -122.4200 } },
-  { id: 3, position: { lat: 37.7700, lng: -122.4000 } },
-];
+const DEFAULT_CENTER: LatLng = { lat: 37.7749, lng: -122.4194 }; // Fallback center
 
-export default function MapContainer() {
+export default function MapContainer({
+  center,
+  drivers,
+  selectedDriverId,
+  pinState = 'demo',
+}: {
+  center?: LatLng;
+  drivers?: DummyDriver[];
+  selectedDriverId?: number | null;
+  // Controls how we visually represent the "your location" pin.
+  // - 'pinned' = real GPS pin (red)
+  // - 'pinning' = GPS request in progress (amber)
+  // - 'demo' = demo/stored center (gray)
+  pinState?: 'demo' | 'pinning' | 'pinned';
+}) {
+  const activeCenter = center ?? DEFAULT_CENTER;
+  const activeDrivers = drivers ?? [];
+
+  const clientPinFill =
+    pinState === 'pinned' ? '#ef4444' : pinState === 'pinning' ? '#f59e0b' : '#94a3b8';
+  const clientPinScale = pinState === 'demo' ? 9 : 10;
 
   return (
     <div className="relative w-full h-full bg-slate-100 group">
       <GoogleMap
         mapContainerStyle={{ width: '100%', height: '100%' }}
-        center={DEFAULT_CENTER}
+        center={activeCenter}
         zoom={13}
         options={{
           styles: MAP_STYLES,
+          // View-only behavior (no interaction while browsing).
+          draggable: false,
+          keyboardShortcuts: false,
+          scrollwheel: false,
+          disableDoubleClickZoom: true,
+          clickableIcons: false,
           disableDefaultUI: true,
           zoomControl: false,
           mapTypeControl: false,
@@ -53,17 +74,17 @@ export default function MapContainer() {
         }}
       >
         {/* Plot actual Google Maps Markers */}
-        {MOCK_DRIVERS.map((driver) => (
+        {activeDrivers.map((driver) => (
           <MarkerF
             key={driver.id}
             position={driver.position}
             icon={{
               path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
-              fillColor: '#10b981', // emerald-500
+              fillColor: driver.id === selectedDriverId ? '#2563eb' : '#10b981', // blue-600 vs emerald-500
               fillOpacity: 1,
               strokeWeight: 1,
               strokeColor: '#ffffff',
-              scale: 1.5,
+              scale: driver.id === selectedDriverId ? 2.0 : 1.5,
               anchor: new google.maps.Point(12, 24),
             }}
           />
@@ -71,14 +92,14 @@ export default function MapContainer() {
 
         {/* Highlight Main Client Area */}
         <MarkerF
-          position={DEFAULT_CENTER}
+          position={activeCenter}
           icon={{
             path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#ef4444', // red-500
+            fillColor: clientPinFill,
             fillOpacity: 1,
             strokeWeight: 3,
             strokeColor: '#ffffff',
-            scale: 8,
+            scale: clientPinScale,
           }}
         />
       </GoogleMap>

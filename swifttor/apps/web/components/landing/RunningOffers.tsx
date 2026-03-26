@@ -4,9 +4,36 @@ import { motion } from 'framer-motion';
 import { Zap, Clock, Star } from 'lucide-react';
 
 const OFFERS = [
-  { id: 1, title: "First Tow Discount", description: "Get 20% off your first towing service with code SWIFT20", icon: <Zap className="text-amber-500" />, color: "bg-amber-50" },
-  { id: 2, title: "Night Owl Special", description: "Flat $60 base rate for all services between 11 PM and 5 AM", icon: <Clock className="text-indigo-500" />, color: "bg-indigo-50" },
-  { id: 3, title: "Refer a Friend", description: "Earn $10 credit for every friend you refer to SwiftTow", icon: <Star className="text-emerald-500" />, color: "bg-emerald-50" },
+  {
+    id: 1,
+    title: "Battery Jumpstart Flash",
+    description: "15% off jumpstarts today with instant dispatch.",
+    code: "JUMP15",
+    icon: <Zap className="text-amber-500" />,
+    color: "bg-emerald-50",
+  },
+  {
+    id: 2,
+    title: "First Tow Discount",
+    description: "Get 20% off your first towing service with upfront pricing.",
+    code: "SWIFT20",
+    icon: <Zap className="text-amber-500" />,
+    color: "bg-amber-50",
+  },
+  {
+    id: 3,
+    title: "Night Owl Special",
+    description: "Flat $60 base rate for all services between 11 PM and 5 AM.",
+    icon: <Clock className="text-indigo-500" />,
+    color: "bg-indigo-50",
+  },
+  {
+    id: 4,
+    title: "Refer a Friend",
+    description: "Earn $10 credit for every friend you refer to SwiftTow.",
+    icon: <Star className="text-emerald-500" />,
+    color: "bg-emerald-50",
+  },
 ];
 
 export default function RunningOffers() {
@@ -19,7 +46,7 @@ export default function RunningOffers() {
           <div className="h-px flex-1 bg-slate-100" />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {OFFERS.map((offer) => (
             <motion.div 
               key={offer.id}
@@ -32,6 +59,11 @@ export default function RunningOffers() {
               <div>
                 <h3 className="font-bold text-slate-900 mb-1">{offer.title}</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">{offer.description}</p>
+                {offer.code && (
+                  <div className="mt-4 inline-flex items-center gap-2 bg-white/70 border border-white/80 text-[10px] font-black text-slate-900 px-3 py-1.5 rounded-full uppercase tracking-widest">
+                    Use Code <span className="text-emerald-600">{offer.code}</span>
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
