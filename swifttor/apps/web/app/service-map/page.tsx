@@ -314,7 +314,7 @@ export default function ServiceMapPage() {
       }
 
       if (bestCenter) {
-        logPin('ACCEPT_AT_DEADLINE', { bestAccM, bestLat: bestCenter.lat, bestLng: bestCenter.lng });
+        logPin('ACCEPT_AT_DEADLINE', { bestAcc, bestLat: bestCenter.lat, bestLng: bestCenter.lng });
         setPinnedCenter(bestCenter);
         setPinnedAccuracyM(bestAcc);
         store.setLocation(bestCenter.lat, bestCenter.lng, 'Pinned location (demo)');

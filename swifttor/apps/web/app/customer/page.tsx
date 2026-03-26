@@ -351,7 +351,7 @@ export default function CustomerDashboard() {
                     </label>
                     <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
                       <Phone size={18} className="text-slate-400" />
-                      <span className="font-bold text-slate-900">{session?.user?.phone || 'Not provided'}</span>
+                      <span className="font-bold text-slate-900">Not provided</span>
                     </div>
                   </div>
 
