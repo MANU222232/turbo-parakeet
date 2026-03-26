@@ -96,7 +96,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: {
-    signIn: "/auth/login",
+    signIn: "/", // Redirect to home instead of custom sign-in page
   },
   session: {
     strategy: "jwt",

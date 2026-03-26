@@ -19,6 +19,7 @@ import {
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function DriverDashboard() {
   const { data: session, status: authStatus } = useSession();
@@ -29,7 +30,7 @@ export default function DriverDashboard() {
   // Redirect if not authenticated or not a driver
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
-      window.location.href = '/api/auth/signin?callbackUrl=/driver';
+      window.location.href = '/';
     } else if (authStatus === 'authenticated' && (session?.user as any)?.role !== 'driver') {
       // For now we allow it but show a warning if it's not explicitly a driver role
       // In a strict production environment, we would redirect to home or access-denied
@@ -232,7 +233,8 @@ export default function DriverDashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050510] text-slate-200 font-sans selection:bg-emerald-500/30 pb-24 lg:pb-0">
+    <ProtectedRoute allowedRoles={['driver']}>
+      <main className="min-h-screen bg-[#050510] text-slate-200 font-sans selection:bg-emerald-500/30 pb-24 lg:pb-0">
       
       {/* Header Profile */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#050510]/80 backdrop-blur-xl border-b border-white/5 p-6 flex justify-between items-center">
@@ -487,5 +489,6 @@ export default function DriverDashboard() {
          </div>
       </nav>
     </main>
+    </ProtectedRoute>
   );
 }

@@ -39,6 +39,9 @@ class User(Base):
     role = Column(Enum(UserRole))
     verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship to profile
+    profile = relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 class Shop(Base):
     __tablename__ = "shops"
@@ -114,4 +117,44 @@ class DriverLocation(Base):
     lng = Column(Float)
     heading = Column(Float)
     speed = Column(Float)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Profile(Base):
+    __tablename__ = "profiles"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, index=True, nullable=False)
+    role = Column(Enum(UserRole), nullable=False, index=True)
+    avatar_url = Column(String, nullable=True)
+    bio = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    state = Column(String, nullable=True)
+    zip_code = Column(String, nullable=True)
+    country = Column(String, default="USA")
+    emergency_contact_name = Column(String, nullable=True)
+    emergency_contact_phone = Column(String, nullable=True)
+    preferences = Column(String, nullable=True)  # JSON string for flexible preferences
+    is_active = Column(Boolean, default=True)
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship to user
+    user = relationship("User", back_populates="profile")
+
+class WhatsAppConfig(Base):
+    __tablename__ = "whatsapp_config"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    phone_number = Column(String, nullable=False)
+    country_code = Column(String, default="+1")  # e.g., +1 for US, +254 for Kenya
+    display_name = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    webhook_url = Column(String, nullable=True)
+    api_token = Column(String, nullable=True)  # Encrypted in production
+    message_templates = Column(String, nullable=True)  # JSON string for templates
+    auto_reply_enabled = Column(Boolean, default=False)
+    business_hours_start = Column(String, nullable=True)  # HH:MM format
+    business_hours_end = Column(String, nullable=True)  # HH:MM format
+    timezone = Column(String, default="UTC")
+    created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

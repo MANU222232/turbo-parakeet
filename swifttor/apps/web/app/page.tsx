@@ -54,18 +54,6 @@ export default function LandingPage() {
             >
               <MapPin size={15} /> Track My Driver
             </button>
-            <button 
-              onClick={() => router.push('/auth/signin')}
-              className="hover:text-slate-900 transition-colors"
-            >
-              Sign In
-            </button>
-            <button 
-              onClick={() => router.push('/auth/signup')}
-              className="text-emerald-600 hover:text-emerald-700 transition-colors font-bold"
-            >
-              Create Account
-            </button>
             <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow shadow-slate-200/50">
               Call +1 (415) 555-0123
             </button>
@@ -175,10 +163,10 @@ export default function LandingPage() {
               {/* CTA group */}
               <div className="flex flex-wrap items-center gap-6">
                 <button
-                  onClick={() => router.push('/auth/signup')}
+                  onClick={() => router.push('/emergency-report')}
                   className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black italic uppercase tracking-tight shadow-emerald transition-all active:scale-95"
                 >
-                  Create Account <ChevronRight size={18} />
+                  Request Service Now <ChevronRight size={18} />
                 </button>
 
                 {/* Social proof */}

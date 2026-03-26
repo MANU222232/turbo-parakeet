@@ -7,6 +7,7 @@ import { io } from 'socket.io-client';
 import { Truck, MapPin, Clock, CheckCircle2, XCircle, LogIn, LogOut, Search, Filter, MoreVertical, Phone, User as UserIcon, Car, Loader2, ChevronRight, Mail, Lock, Navigation, MessageSquare, MessageCircle, X, Camera } from 'lucide-react';
 import { Location } from './types';
 import { MapContainer } from './MapContainer';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // ✅ AGENT: Use environment variable for admin email check
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "maichezmaichez@gmail.com";
@@ -65,7 +66,7 @@ export default function AdminPage() {
   // Redirect if not authenticated or not an admin
   useEffect(() => {
     if (authStatus === 'unauthenticated') {
-      window.location.href = '/api/auth/signin?callbackUrl=/admin';
+      window.location.href = '/';
     } else if (authStatus === 'authenticated') {
       const isAllowed = session?.user?.email === ADMIN_EMAIL || (session?.user as any)?.role === 'admin';
       if (!isAllowed) {
@@ -355,22 +356,14 @@ export default function AdminPage() {
           <div className="bg-slate-900 w-16 h-16 rounded-2xl flex items-center justify-center text-white mx-auto mb-8">
             <Truck size={32} />
           </div>
-          <h1 className="text-3xl font-black tracking-tighter uppercase italic mb-4">Admin Portal</h1>
+          <h1 className="text-3xl font-black tracking-tighter uppercase italic mb-4">Access Denied</h1>
           <p className="text-slate-500 mb-8 leading-relaxed">
-            Please sign in with your authorized admin account to access the dashboard.
+            This portal requires authorized admin credentials.
           </p>
 
           <button 
-            onClick={() => window.location.href = '/api/auth/signin'}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
-          >
-            <LogIn size={20} />
-            Sign In with Account
-          </button>
-
-          <button 
             onClick={onBack}
-            className="mt-8 w-full py-4 border-2 border-slate-100 text-slate-500 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-all"
+            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
           >
             <ChevronRight className="rotate-180" size={20} /> Return to Home Screen
           </button>
@@ -387,8 +380,9 @@ export default function AdminPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 relative">
-      <nav className="bg-slate-900 text-white sticky top-0 z-50">
+    <ProtectedRoute allowedRoles={['admin', 'shop_owner']}>
+      <div className="min-h-screen bg-slate-50 relative">
+        <nav className="bg-slate-900 text-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={onBack}>
@@ -1011,5 +1005,6 @@ export default function AdminPage() {
         )}
       </AnimatePresence>
     </div>
+    </ProtectedRoute>
   );
 };

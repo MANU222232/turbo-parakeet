@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # MUST LOAD BEFORE ROUTERS
 load_dotenv()
 
-from routers import orders, users, shops, auth, upload, ai, ai_chat, payments, drivers, comms, stats
+from routers import orders, users, shops, auth, upload, ai, ai_chat, payments, drivers, comms, stats, profiles, whatsapp
 from db.session import engine, SessionLocal
 from db.mongodb import client as mongo_client
 from core.sockets import sio
@@ -119,6 +119,7 @@ async def protected_route(token: str = Header(None)):
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(profiles.router, prefix="/api/v1", tags=["profiles"])
 app.include_router(shops.router, prefix="/api/v1/shops", tags=["shops"])
 app.include_router(orders.router, prefix="/api/v1/orders", tags=["orders"])
 app.include_router(upload.router, prefix="/api/v1/upload", tags=["upload"])
@@ -128,6 +129,7 @@ app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"]
 app.include_router(drivers.router, prefix="/api/v1/drivers", tags=["drivers"])
 app.include_router(comms.router, prefix="/api/v1/comms", tags=["comms"])
 app.include_router(stats.router, prefix="/api/v1/stats", tags=["stats"])
+app.include_router(whatsapp.router, prefix="/api/v1", tags=["whatsapp"])
 
 # Mount Socket.io
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)

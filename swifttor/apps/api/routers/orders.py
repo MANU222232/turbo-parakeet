@@ -172,6 +172,32 @@ async def get_available_jobs(lat: float = Query(...), lng: float = Query(...), r
             raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/my-orders")
+async def get_my_orders(user_id: str = Query(...)):
+    """
+    Get all orders for a specific user
+    """
+    async with await db_pool.get_conn() as conn:
+        try:
+            rows = await conn.fetch(
+                """
+                SELECT 
+                    id, display_id, status, payment_status,
+                    total_amount AS final_amount,
+                    location_lat, location_lng, location_address,
+                    issue_description,
+                    created_at
+                FROM orders 
+                WHERE user_id = $1::uuid 
+                ORDER BY created_at DESC
+                """,
+                user_id
+            )
+            return [dict(r) for r in rows]
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/{order_id}/accept")
 async def accept_job(order_id: str, driver_id: str = Query(...)):
     """

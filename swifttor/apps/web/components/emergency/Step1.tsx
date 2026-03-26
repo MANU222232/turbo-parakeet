@@ -24,6 +24,7 @@ export default function Step1({ onNext }: { onNext: () => void }) {
   const store = useEmergencyStore();
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [gpsAttempted, setGpsAttempted] = useState(false);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
@@ -36,10 +37,26 @@ export default function Step1({ onNext }: { onNext: () => void }) {
     },
   });
 
+  // Auto-request GPS on component mount
+  useState(() => {
+    if (!store.lat && !gpsAttempted) {
+      setTimeout(() => {
+        handleCaptureGPS();
+      }, 500);
+    }
+  });
+
   const handleCaptureGPS = () => {
     setLocating(true);
     setLocationError('');
-    navigator.geolocation?.getCurrentPosition(
+    
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation not supported by this browser.');
+      setLocating(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
       (pos) => {
         const address = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
         store.setEmergencyData({
@@ -47,23 +64,42 @@ export default function Step1({ onNext }: { onNext: () => void }) {
           lng: pos.coords.longitude,
           address: address,
         });
-        setValue('location', address); // Sync with form field
+        setValue('location', address, { shouldValidate: true }); // Sync with form field
         setLocating(false);
         setLocationError('');
       },
-      () => {
-        // Fallback to mock location if denied
-        store.setEmergencyData({ lat: 34.0522, lng: -118.2437, address: 'Los Angeles, CA 90015' });
+      (error) => {
+        console.error('GPS Error:', error.code, error.message);
         setLocating(false);
+        
+        let errorMsg = 'Unable to get GPS location. ';
+        if (error.code === 1) {
+          errorMsg += 'Please allow location access and try again.';
+        } else if (error.code === 2) {
+          errorMsg += 'Location service unavailable.';
+        } else if (error.code === 3) {
+          errorMsg += 'Location request timed out.';
+        }
+        
+        setLocationError(errorMsg);
+        
+        // Still allow manual entry - don't set mock location automatically
       },
-      { timeout: 8000 }
+      { 
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0 
+      }
     );
   };
 
   const onSubmit = (data: Step1Data) => {
-    // Require GPS for "Target Locked" or at least a very clear manual address entry
-    if (!store.lat && !data.location.includes(',')) {
-      setLocationError('Precision GPS lock required for rapid dispatch.');
+    // Validate that we have either GPS coordinates OR a detailed manual address
+    const hasGPS = store.lat != null && store.lng != null;
+    const hasDetailedAddress = data.location.length >= 10;
+    
+    if (!hasGPS && !hasDetailedAddress) {
+      setLocationError('Please provide GPS coordinates or a detailed manual address for dispatch.');
       return;
     }
     
@@ -140,7 +176,13 @@ export default function Step1({ onNext }: { onNext: () => void }) {
               {!store.lat ? (
                 <>
                   <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 italic">Global Telemetry</h3>
-                  <p className="text-[11px] text-slate-500 max-w-[200px] leading-relaxed">Securely lock your GPS coordinates to coordinate recovery.</p>
+                  <p className="text-[11px] text-slate-500 max-w-[200px] leading-relaxed">
+                    {locating 
+                      ? 'Acquiring satellite signal...' 
+                      : gpsAttempted && locationError
+                        ? 'GPS unavailable. Please enter location manually.'
+                        : 'Securely lock your GPS coordinates to coordinate recovery.'}
+                  </p>
                 </>
               ) : (
                 <>
@@ -157,15 +199,25 @@ export default function Step1({ onNext }: { onNext: () => void }) {
                 type="button"
                 onClick={handleCaptureGPS}
                 disabled={locating}
-                className="relative px-8 h-12 rounded-2xl bg-slate-900 hover:bg-emerald-500 text-white font-black italic uppercase tracking-[0.15em] text-[11px] transition-all duration-300 active:scale-95 group overflow-hidden"
+                className={cn(
+                  "relative px-8 h-12 rounded-2xl font-black italic uppercase tracking-[0.15em] text-[11px] transition-all duration-300 active:scale-95 group overflow-hidden",
+                  locating 
+                    ? "bg-slate-400 cursor-not-allowed" 
+                    : "bg-slate-900 hover:bg-emerald-500 text-white"
+                )}
               >
-                <span className="relative z-10">{locating ? 'Locking...' : 'Initiate Scan'}</span>
+                <span className="relative z-10">
+                  {locating ? 'Locking Target...' : gpsAttempted ? 'Retry Scan' : 'Initiate Scan'}
+                </span>
                 <div className="absolute inset-x-0 bottom-0 h-1 bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             )}
 
             {locationError && (
-              <p className="text-[10px] text-red-500 font-bold uppercase tracking-wider animate-bounce">{locationError}</p>
+              <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-2xl space-y-2">
+                <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider">{locationError}</p>
+                <p className="text-[9px] text-red-500 font-medium">Please allow location access in your browser settings, or enter your location manually below.</p>
+              </div>
             )}
           </div>
         </motion.div>

@@ -3,7 +3,35 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
-
+  
+  // Get session token from cookie
+  const sessionToken = request.cookies.get('next-auth.session-token')?.value;
+  const hasSession = !!sessionToken;
+  
+  // Protected routes configuration
+  const protectedRoutes = ['/admin', '/driver', '/customer', '/profile'];
+  const currentPath = request.nextUrl.pathname;
+  
+  // Check if accessing protected route
+  const isProtectedRoute = protectedRoutes.some(route => 
+    currentPath.startsWith(route)
+  );
+  
+  // Redirect logic for protected routes
+  if (isProtectedRoute && !hasSession) {
+    // Redirect to home page if not authenticated
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+  
+  // Role-based access control for specific portals
+  const adminRoute = currentPath.startsWith('/admin');
+  const driverRoute = currentPath.startsWith('/driver');
+  const customerRoute = currentPath.startsWith('/customer');
+  
+  // If we have session, check role (stored in JWT)
+  // Note: Full role validation happens client-side with auth.ts callbacks
+  // This is a basic guard
+  
   // Content Security Policy (Strict but allows required APIs)
   const csp = `
     default-src 'self';
