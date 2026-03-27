@@ -404,7 +404,7 @@ export default function LandingPage() {
 
       {/* ── Floating WhatsApp ── */}
       <a
-        href="https://wa.me/14155550123?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance."
+        href="https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance."
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-8 right-8 z-50 bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-full shadow-2xl transition-transform hover:scale-110 active:scale-95"

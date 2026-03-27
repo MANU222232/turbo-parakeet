@@ -76,7 +76,7 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
     );
     
     // Open WhatsApp with pre-filled message
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    window.open(`https://wa.me/12089695688?text=${message}`, '_blank');
     
     onClose();
   };

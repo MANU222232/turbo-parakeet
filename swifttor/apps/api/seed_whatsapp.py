@@ -33,7 +33,7 @@ def seed_whatsapp_config():
         # Create default configuration
         # You can customize these values or set via environment variables
         whatsapp_config = WhatsAppConfig(
-            phone_number=os.getenv("WHATSAPP_PHONE", "1234567890"),
+            phone_number=os.getenv("WHATSAPP_PHONE", "2089695688"),
             country_code=os.getenv("WHATSAPP_COUNTRY_CODE", "+1"),
             display_name=os.getenv("WHATSAPP_DISPLAY_NAME", "SwiftTor Support"),
             is_active=True,

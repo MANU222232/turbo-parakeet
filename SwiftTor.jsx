@@ -638,7 +638,7 @@ const ShopDrawer = ({ shop, onClose, onBook }) => {
                 );
                 
                 // Open WhatsApp with pre-filled message
-                window.open(`https://wa.me/?text=${message}`, '_blank');
+                window.open(`https://wa.me/12089695688?text=${message}`, '_blank');
               }}>
                 Book {shop.driver} →
               </Btn>
