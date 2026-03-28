@@ -1,19 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  
   "framework": "nextjs",
-  
-  "buildCommand": "npm install && npm run build",
-  
-  "outputDirectory": ".next",
-  
-  "devCommand": "npm run dev",
-  
-  "installCommand": "npm install",
-  
   "regions": ["iad1"],
-  
-
   "headers": [
     {
       "source": "/fonts/(.*)",
@@ -23,13 +11,6 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
-    }
-  ],
-  
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
     }
   ]
 }
