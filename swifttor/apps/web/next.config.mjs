@@ -1,6 +1,11 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 /** @type {import('next').NextConfig} */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Resolve the API origin for CSP — supports both http/https and ws/wss.
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -44,6 +49,12 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.pravatar.cc' },
       { protocol: 'https', hostname: 'fastly.picsum.photos' },
     ],
+  },
+  webpack: (config) => {
+    // Explicitly resolve the @ alias so Vercel's webpack always finds it,
+    // regardless of how tsconfig paths are picked up in a monorepo.
+    config.resolve.alias['@'] = __dirname;
+    return config;
   },
 };
 
