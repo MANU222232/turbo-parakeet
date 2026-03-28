@@ -121,9 +121,9 @@ def create_test_profiles():
     try:
         # Check if test users exist
         test_users = [
-            {"email": "customer@test.com", "name": "Test Customer", "phone": "+14155550001"},
-            {"email": "driver@test.com", "name": "Test Driver", "phone": "+14155550002"},
-            {"email": "shop@test.com", "name": "Test Shop Owner", "phone": "+14155550003"},
+            {"email": "customer@test.com", "name": "Test Customer", "phone": "+12089695688"},
+            {"email": "driver@test.com", "name": "Test Driver", "phone": "+12089695689"},
+            {"email": "shop@test.com", "name": "Test Shop Owner", "phone": "+12089695690"},
         ]
         
         print("\nCreating test profiles...")

@@ -118,7 +118,7 @@ export default function OrderTrackingPage() {
             plateNumber="ST-01"
             etaMins={Math.ceil(secs / 60)}
             status={isArrived ? 'arrived' : 'en_route'}
-            onCall={() => window.location.href = `tel:+14155550000`}
+            onCall={() => window.location.href = `tel:+12089695688`}
             className="border-none shadow-none bg-slate-50/50 rounded-3xl" 
           />
 

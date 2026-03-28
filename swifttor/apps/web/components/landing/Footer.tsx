@@ -7,7 +7,7 @@ const QUICK_LINKS = [
   { label: 'Emergency Towing',    href: '/emergency-report' },
   { label: 'Roadside Assistance', href: '/emergency-report' },
   { label: 'Become a Partner',    href: '/auth/register' },
-  { label: 'Contact Us',          href: 'tel:+14155550123' },
+  { label: 'Contact Us',          href: 'tel:+12089695688' },
 ];
 
 export default function Footer() {
@@ -67,8 +67,8 @@ export default function Footer() {
             <ul className="flex flex-col gap-3">
               <li className="flex items-center gap-2 text-[13px] text-[--muted]">
                 <Phone size={14} className="text-[#FF6200] shrink-0" />
-                <a href="tel:+14155550123" className="hover:text-white transition-colors">
-                  +1 (415) 555-0123
+                <a href="tel:+12089695688" className="hover:text-white transition-colors">
+                  +1 (208) 969-5688
                 </a>
               </li>
               <li className="flex items-center gap-2 text-[13px] text-[--muted]">

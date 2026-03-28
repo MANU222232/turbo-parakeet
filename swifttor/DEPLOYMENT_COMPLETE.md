@@ -12,7 +12,7 @@
 ### Initial Configuration Seeded
 ```
 ✅ ID: ba413480-adbb-47ad-a52a-5de937792d96
-✅ Phone: +1 1234567890
+✅ Phone: +1 2089695688
 ✅ Display Name: SwiftTor Support
 ✅ Active: true
 ```

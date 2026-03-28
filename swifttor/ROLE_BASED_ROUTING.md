@@ -280,13 +280,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 # Use the auth endpoint to create a user
 POST /api/v1/auth/send-otp
 {
-  "phone": "+14155550123"
+  "phone": "+12089695688"
 }
 
 # Verify and get tokens
 POST /api/v1/auth/verify
 {
-  "phone": "+14155550123",
+  "phone": "+12089695688",
   "otp": "123456"
 }
 ```

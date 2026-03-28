@@ -92,11 +92,11 @@ export default function Navbar() {
               </>
             )}
             <a
-              href="tel:+14155550123"
+              href="tel:+12089695688"
               className="flex items-center gap-2 bg-[#FF6200] hover:bg-[#e55800] text-white px-4 py-2 rounded-lg text-[12px] font-black uppercase tracking-widest transition-all active:scale-95"
             >
               <Phone size={13} strokeWidth={2.5} />
-              <span className="hidden sm:inline">Call +1 (415) 555-0123</span>
+              <span className="hidden sm:inline">Call +1 (208) 969-5688</span>
               <span className="sm:hidden">Call</span>
             </a>
           </div>

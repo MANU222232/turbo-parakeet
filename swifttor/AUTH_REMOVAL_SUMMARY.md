@@ -206,13 +206,13 @@ POST /api/auth/magic-link
 // Request OTP
 POST /api/v1/auth/send-otp
 {
-  "phone": "+14155550123"
+  "phone": "+12089695688"
 }
 
 // Verify OTP
 POST /api/v1/auth/verify
 {
-  "phone": "+14155550123",
+  "phone": "+12089695688",
   "otp": "123456"
 }
 ```

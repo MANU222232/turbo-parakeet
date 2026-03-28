@@ -11,7 +11,7 @@ def seed_data():
         # 1. Create a dummy shop owner
         owner = User(
             name="Mike",
-            phone="+1234567890",
+            phone="+12089695688",
             email="mike@service.com",
             role=UserRole.shop_owner,
             verified=True
