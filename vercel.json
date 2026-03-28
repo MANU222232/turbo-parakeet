@@ -1,0 +1,87 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  
+  "framework": "nextjs",
+  
+  "rootDirectory": "swifttor/apps/web",
+  
+  "buildCommand": "npm install && npm run build",
+  
+  "outputDirectory": ".next",
+  
+  "devCommand": "npm run dev",
+  
+  "installCommand": "npm install",
+  
+  "regions": ["iad1"],
+  
+  "env": {
+    "NEXT_PUBLIC_API_URL": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXTAUTH_SECRET": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXTAUTH_URL": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "AUTH_SECRET": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "AUTH_URL": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXT_PUBLIC_GOOGLE_MAPS_KEY": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXT_PUBLIC_PAYPAL_CLIENT_ID": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "SENTRY_DSN": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NEXT_PUBLIC_SENTRY_DSN": {
+      "type": "encrypted",
+      "value": ""
+    },
+    "NODE_ENV": {
+      "type": "plain",
+      "value": "production"
+    }
+  },
+  
+  "headers": [
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}

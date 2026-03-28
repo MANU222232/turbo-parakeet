@@ -1,5 +1,8 @@
+# Render Deployment Configuration
+# This file tells Render how to deploy both backend and frontend
+
 services:
-  # ─── Backend: FastAPI + Socket.io ──────────────────────────────────────────
+  # ─── Backend: FastAPI + Socket.io (Python) ─────────────────────────────────
   - type: web
     name: swifttor-api
     runtime: python
@@ -7,30 +10,32 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: bash start.sh
     healthCheckPath: /health
+    plan: starter
+    branch: main
+    autoDeploy: true
     envVars:
-      # ── Database ───────────────────────────────────────────────────────────
+      # Database connections
       - key: DATABASE_URL
-        sync: false   # Set in Render dashboard — Neon PostgreSQL connection string
+        sync: false
       - key: MONGODB_URI
-        sync: false   # Set in Render dashboard — MongoDB Atlas connection string
+        sync: false
       - key: UPSTASH_REDIS_REST_URL
-        sync: false   # Set in Render dashboard
+        sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
-        sync: false   # Set in Render dashboard
-      # ── Authentication & Security ──────────────────────────────────────────
+        sync: false
+      # Authentication
       - key: JWT_SECRET_KEY
         sync: false
       - key: JWT_REFRESH_SECRET_KEY
         sync: false
       - key: NEXTAUTH_SECRET
         sync: false
-      # ── AI ─────────────────────────────────────────────────────────────────
+      # AI & Payments
       - key: GEMINI_API_KEY
         sync: false
-      # ── Payments ───────────────────────────────────────────────────────────
       - key: STRIPE_SECRET_KEY
         sync: false
-      # ── Storage ────────────────────────────────────────────────────────────
+      # Storage
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -39,7 +44,7 @@ services:
         value: us-east-1
       - key: AWS_S3_BUCKET_NAME
         value: swifttor-emergency-uploads
-      # ── Communications ─────────────────────────────────────────────────────
+      # Communications
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
@@ -48,48 +53,27 @@ services:
         sync: false
       - key: TWILIO_PHONE_NUMBER
         sync: false
-      # ── Monitoring ─────────────────────────────────────────────────────────
+      # Monitoring
       - key: SENTRY_DSN
         sync: false
-      # ── CORS (comma-separated list of allowed frontend origins) ────────────
+      # CORS - Add your Vercel URL here after deployment
       - key: CORS_ORIGINS
-        sync: false   # e.g. https://swifttor-web.onrender.com,https://yourdomain.com
+        sync: false
 
-  # ─── Frontend: Next.js ─────────────────────────────────────────────────────
-  - type: web
-    name: swifttor-web
-    runtime: node
-    rootDir: swifttor/apps/web
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    envVars:
-      # ── API URL — set to your deployed API service URL ─────────────────────
-      - key: NEXT_PUBLIC_API_URL
-        sync: false   # e.g. https://swifttor-api.onrender.com
-      # ── NextAuth ───────────────────────────────────────────────────────────
-      - key: NEXTAUTH_SECRET
-        sync: false
-      - key: NEXTAUTH_URL
-        sync: false   # e.g. https://swifttor-web.onrender.com
-      - key: AUTH_SECRET
-        sync: false
-      - key: AUTH_URL
-        sync: false   # e.g. https://swifttor-web.onrender.com
-      # ── Google Maps ────────────────────────────────────────────────────────
-      - key: NEXT_PUBLIC_GOOGLE_MAPS_KEY
-        sync: false
-      - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-        sync: false
-      # ── Payments ───────────────────────────────────────────────────────────
-      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-        sync: false
-      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
-        sync: false
-      # ── Monitoring ─────────────────────────────────────────────────────────
-      - key: SENTRY_DSN
-        sync: false
-      - key: NEXT_PUBLIC_SENTRY_DSN
-        sync: false
-      # ── Node environment ───────────────────────────────────────────────────
-      - key: NODE_ENV
-        value: production
+  # ─── Frontend: Next.js (Node.js) ───────────────────────────────────────────
+  # Note: Deploy this separately to Vercel for better performance
+  # Keep this commented out as reference
+  # - type: web
+  #   name: swifttor-web
+  #   runtime: node
+  #   rootDir: swifttor/apps/web
+  #   buildCommand: npm install && npm run build
+  #   startCommand: npm start
+  #   plan: starter
+  #   branch: main
+  #   autoDeploy: true
+  #   envVars:
+  #     - key: NEXT_PUBLIC_API_URL
+  #       sync: false
+  #     - key: NODE_ENV
+  #       value: production
