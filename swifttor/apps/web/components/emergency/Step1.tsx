@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -38,13 +38,14 @@ export default function Step1({ onNext }: { onNext: () => void }) {
   });
 
   // Auto-request GPS on component mount
-  useState(() => {
+  useEffect(() => {
     if (!store.lat && !gpsAttempted) {
       setTimeout(() => {
         handleCaptureGPS();
       }, 500);
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCaptureGPS = () => {
     setLocating(true);

@@ -139,7 +139,7 @@ function generateDummyDrivers(center: LatLng, count = 8): DummyDriver[] {
 
 export default function LiveDispatch() {
   const router = useRouter();
-  const defaultCenter: LatLng = useMemo(() => ({ lat: 37.7749, lng: -122.4194 }), []);
+  const defaultCenter: LatLng = useMemo(() => ({ lat: 1.2921, lng: 36.8219 }), []); // Default to Nairobi, Kenya (can be changed)
   const [mapCenter, setMapCenter] = useState<LatLng>(defaultCenter);
   const [drivers, setDrivers] = useState<DummyDriver[]>(() => generateDummyDrivers(defaultCenter, 8));
   const [locating, setLocating] = useState(true);
@@ -209,12 +209,12 @@ export default function LiveDispatch() {
       setStatusText(`GPS active ±${Math.round(result.accuracy)}m via ${source}`);
     };
 
-    const fallbackToDemo = () => {
+    const fallbackToDemo = async () => {
       if (finalized || cancelled) return;
       finalized = true;
-      
+
       logPin('USING_FALLBACK');
-      
+
       // Try to get stored location first
       let stored: LatLng | null = null;
       try {
@@ -229,16 +229,50 @@ export default function LiveDispatch() {
       } catch (e) {
         logPin('STORAGE_READ_ERROR', { error: e });
       }
-      
-      const centerToUse = stored || defaultCenter;
-      setMapCenter(centerToUse);
+
+      if (stored) {
+        setMapCenter(stored);
+        setPinState('demo');
+        setPinnedAccuracyM(null);
+        const newDrivers = generateDummyDrivers(stored, 10);
+        setDrivers(newDrivers);
+        setSelectedDriverId(newDrivers[0]?.id ?? null);
+        setLocating(false);
+        setStatusText(`Stored location ±unknown`);
+        return;
+      }
+
+      // Try IP-based geolocation as a better fallback than hardcoded coordinates
+      try {
+        logPin('FETCHING_IP_LOCATION');
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        if (data.latitude && data.longitude) {
+          const ipLocation: LatLng = { lat: data.latitude, lng: data.longitude };
+          logPin('IP_LOCATION_SUCCESS', ipLocation);
+          setMapCenter(ipLocation);
+          setPinState('demo');
+          setPinnedAccuracyM(null);
+          const newDrivers = generateDummyDrivers(ipLocation, 10);
+          setDrivers(newDrivers);
+          setSelectedDriverId(newDrivers[0]?.id ?? null);
+          setLocating(false);
+          setStatusText(`IP-based location (${data.city || 'Unknown'})`);
+          return;
+        }
+      } catch (e) {
+        logPin('IP_LOCATION_FAILED', { error: e });
+      }
+
+      // Last resort: use default center
+      setMapCenter(defaultCenter);
       setPinState('demo');
       setPinnedAccuracyM(null);
-      const newDrivers = generateDummyDrivers(centerToUse, 10);
+      const newDrivers = generateDummyDrivers(defaultCenter, 10);
       setDrivers(newDrivers);
       setSelectedDriverId(newDrivers[0]?.id ?? null);
       setLocating(false);
-      setStatusText(stored ? `Stored location ±unknown` : 'Demo mode - GPS unavailable');
+      setStatusText('Demo mode - GPS unavailable');
     };
 
     const requestLocation = () => {
@@ -516,10 +550,10 @@ export default function LiveDispatch() {
                       }
                       
                     } catch (error) {
-                      logPin('REFRESH_GPS_ERROR', { 
-                        error: error instanceof Error ? error.message : String(error) 
+                      logPin('REFRESH_GPS_ERROR', {
+                        error: error instanceof Error ? error.message : String(error)
                       });
-                      
+
                       // Try stored location
                       let stored: LatLng | null = null;
                       try {
@@ -530,14 +564,40 @@ export default function LiveDispatch() {
                       } catch (e) {
                         logPin('STORAGE_READ_ERROR', { error: e });
                       }
-                      
-                      const centerToUse = stored || mapCenter;
-                      setMapCenter(centerToUse);
+
+                      if (stored) {
+                        setMapCenter(stored);
+                        setPinState('demo');
+                        setPinnedAccuracyM(null);
+                        const newDrivers = generateDummyDrivers(stored, 10);
+                        setDrivers(newDrivers);
+                        setSelectedDriverId(newDrivers[0]?.id ?? null);
+                        setLocating(false);
+                        return;
+                      }
+
+                      // Try IP-based geolocation
+                      try {
+                        const response = await fetch('https://ipapi.co/json/');
+                        const data = await response.json();
+                        if (data.latitude && data.longitude) {
+                          const ipLocation: LatLng = { lat: data.latitude, lng: data.longitude };
+                          setMapCenter(ipLocation);
+                          setPinState('demo');
+                          setPinnedAccuracyM(null);
+                          const newDrivers = generateDummyDrivers(ipLocation, 10);
+                          setDrivers(newDrivers);
+                          setSelectedDriverId(newDrivers[0]?.id ?? null);
+                          setLocating(false);
+                          return;
+                        }
+                      } catch (e) {
+                        logPin('IP_LOCATION_FAILED', { error: e });
+                      }
+
+                      // Last resort: keep current center
                       setPinState('demo');
                       setPinnedAccuracyM(null);
-                      const newDrivers = generateDummyDrivers(centerToUse, 10);
-                      setDrivers(newDrivers);
-                      setSelectedDriverId(newDrivers[0]?.id ?? null);
                       setLocating(false);
                     }
                   }}
