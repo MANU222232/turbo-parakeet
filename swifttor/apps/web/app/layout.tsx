@@ -4,6 +4,7 @@ import NextAuthProvider from "@/components/SessionProvider";
 import GoogleMapsProvider from "@/components/GoogleMapsProvider";
 import Providers from '@/components/Providers';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import BackendPinger from "@/components/BackendPinger";
 
 export const metadata: Metadata = {
   title: "SwiftTow | Emergency Roadside Assistance",
@@ -22,6 +23,7 @@ export default function RootLayout({
           <NextAuthProvider>
             <GoogleMapsProvider>
               <Providers>
+                <BackendPinger />
                 {children}
               </Providers>
             </GoogleMapsProvider>
