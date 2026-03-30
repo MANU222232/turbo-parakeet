@@ -5,6 +5,7 @@ import GoogleMapsProvider from "@/components/GoogleMapsProvider";
 import Providers from '@/components/Providers';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import BackendPinger from "@/components/BackendPinger";
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: "SwiftTow | Emergency Roadside Assistance",
@@ -29,6 +30,7 @@ export default function RootLayout({
             </GoogleMapsProvider>
           </NextAuthProvider>
         </ErrorBoundary>
+        <Analytics />
       </body>
     </html>
   );
