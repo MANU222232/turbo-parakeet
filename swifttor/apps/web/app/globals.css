@@ -52,6 +52,31 @@
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, #10b981 0%, #059669 100%);
   }
+  
+  /* Accessibility: Focus visible styles */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6200] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070707];
+  }
+  
+  /* Skip link for keyboard navigation */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#FF6200] focus:text-white focus:rounded-lg focus:font-bold;
+  }
+  
+  /* Reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .border { border-width: 2px !important; }
+    .text-neutral-400, .text-neutral-500 { color: #fff !important; }
+  }
 }
 
 /* ── Animations ── */

@@ -108,7 +108,7 @@ function generateDummyDrivers(center: LatLng, count = 8): DummyDriver[] {
 
   for (let i = 0; i < count; i++) {
     const angle = rand() * Math.PI * 2;
-    const dist = 0.0035 + rand() * 0.02;
+    const dist = 0.12 + rand() * 0.18;
 
     const dLat = Math.cos(angle) * dist;
     const dLng = Math.sin(angle) * dist;
@@ -119,10 +119,10 @@ function generateDummyDrivers(center: LatLng, count = 8): DummyDriver[] {
     const milesPerDegLng = 69 * Math.cos((baseLat * Math.PI) / 180);
     const dx = dLng * milesPerDegLng;
     const dy = dLat * milesPerDegLat;
-    const distanceMi = clamp(Math.sqrt(dx * dx + dy * dy), 0.2, 8);
+    const distanceMi = clamp(Math.sqrt(dx * dx + dy * dy), 8, 18);
 
     const rating = clamp(4.2 + rand() * 0.8, 4.2, 5);
-    const etaMins = Math.round(clamp(distanceMi * (3.2 + rand() * 1.2) + 6 + rand() * 8, 8, 45));
+    const etaMins = Math.round(clamp(distanceMi * 2.5 + 5 + rand() * 12, 30, 56));
 
     drivers.push({
       id: i + 1,

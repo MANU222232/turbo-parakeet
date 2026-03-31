@@ -1,9 +1,27 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleMap, MarkerF } from '@react-google-maps/api';
-import { ChevronLeft, ShoppingCart, Loader2, Search, Clock } from 'lucide-react';
+import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
+import {
+  ChevronLeft,
+  ShoppingCart,
+  Loader2,
+  Search,
+  Clock,
+  MapPin,
+  Filter,
+  X,
+  Star,
+  Navigation,
+  SlidersHorizontal,
+  Target,
+  Zap,
+  Shield,
+  AlertCircle,
+  RefreshCw
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { useEmergencyStore } from '@/store/useEmergencyStore';
 import { useCartStore } from '@/store/useCartStore';
@@ -13,11 +31,14 @@ import ShopDrawer from '@/components/ui/ShopDrawer';
 import { Shop } from '@/lib/constants/shops';
 
 const mapContainerStyle = { width: '100vw', height: '100vh' };
-const DRIVER_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981' width='36px' height='36px'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E";
+
+// Enhanced driver marker with green gradient (matches app theme)
+const DRIVER_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 52' width='52px' height='52px'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2310b981;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2310b981CC;stop-opacity:1' /%3E%3C/linearGradient%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='26' cy='26' r='20' fill='url(%23grad)' filter='url(%23glow)'/%3E%3Ccircle cx='26' cy='26' r='16' fill='url(%23grad)' stroke='%23fff' stroke-width='3'/%3E%3Cpath d='M26 15 L28.8 20.5 L35 20.5 L30 24.5 L32 30.5 L26 26.5 L20 30.5 L22 24.5 L17 20.5 L23.2 20.5 Z' fill='%23ffffff'/%3E%3C/svg%3E";
 
 type SortParam = 'recommended' | 'nearest' | 'fastest' | 'rated';
+type RatingFilter = 'all' | '4+' | '4.5+';
 
-/** Composite Best Match score — borrows the algorithm idea from SwiftTor reference */
+/** Composite Best Match score */
 function bestMatchScore(shop: Shop): number {
   return (
     (1 / shop.distanceMi) * 0.4 +
@@ -95,7 +116,7 @@ function generateDummyDrivers(center: LatLng, count = 8): Shop[] {
   const shops: Shop[] = [];
   for (let i = 0; i < count; i++) {
     const angle = rand() * Math.PI * 2;
-    const distDeg = 0.0035 + rand() * 0.02;
+    const distDeg = 0.01 + rand() * 0.035;
     const dLat = Math.cos(angle) * distDeg;
     const dLng = Math.sin(angle) * distDeg;
 
@@ -104,10 +125,10 @@ function generateDummyDrivers(center: LatLng, count = 8): Shop[] {
 
     const dx = dLng * milesPerDegLng;
     const dy = dLat * milesPerDegLat;
-    const distanceMi = clamp(Math.sqrt(dx * dx + dy * dy), 0.2, 12);
+    const distanceMi = clamp(Math.sqrt(dx * dx + dy * dy), 0.3, 2.5);
 
     const rating = clamp(4.2 + rand() * 0.8, 4.2, 5);
-    const etaMins = Math.round(clamp(distanceMi * (3.0 + rand() * 1.5) + 6 + rand() * 8, 8, 60));
+    const etaMins = Math.round(clamp(distanceMi * 12 + 5 + rand() * 20, 17, 45));
     const rate = Math.round(clamp(90 + rand() * 9, 88, 99));
     const reviews = Math.round(60 + rand() * 700);
     const jobs = Math.round(120 + rand() * 5000);
@@ -138,25 +159,71 @@ function generateDummyDrivers(center: LatLng, count = 8): Shop[] {
   return shops;
 }
 
+// Map style constants - Light theme with green accents
+const MAP_STYLES = [
+  { elementType: 'geometry', stylers: [{ color: '#f8fafc' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#334155' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#e2e8f0' }] },
+  { featureType: 'administrative.land_parcel', stylers: [{ visibility: 'off' }] },
+  { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#f1f5f9' }] },
+  { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#d1fae5' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#f1f5f9' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f1f5f9' }] },
+  { featureType: 'road.highway.controlled_access', elementType: 'geometry', stylers: [{ color: '#e2e8f0' }] },
+  { featureType: 'road.local', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#cffafe' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0891b2' }] },
+];
+
 export default function ServiceMapPage() {
   const router = useRouter();
   const store = useEmergencyStore();
   const cart = useCartStore();
+
+  // Map loading state
+  const { isLoaded: mapLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['maps'],
+    version: 'weekly',
+  });
+
+  // Selection state
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
   const [drawerShop, setDrawerShop] = useState<Shop | null>(null);
-  const [sortParam, setSortParam] = useState<SortParam>('recommended');
 
+  // Sort and filter state
+  const [sortParam, setSortParam] = useState<SortParam>('recommended');
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>('all');
+  const [maxDistance, setMaxDistance] = useState<number>(15);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchDebounced, setSearchDebounced] = useState('');
+
+  // Location state
   const [locating, setLocating] = useState(false);
-  // `hasPinned` means we have a GPS pin from the user's click.
-  // Until then, the map shows demo pins around the last stored center (if any).
   const [hasPinned, setHasPinned] = useState(false);
   const [pinnedCenter, setPinnedCenter] = useState<LatLng | null>(null);
   const [pinnedAccuracyM, setPinnedAccuracyM] = useState<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const pinTimeoutRef = useRef<number | null>(null);
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchDebounced(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const logPin = (stage: string, data?: Record<string, unknown>) => {
-    // One place to tweak log prefix/format.
     // eslint-disable-next-line no-console
     console.log(`[ServiceMapPin] ${new Date().toISOString()}`, stage, data ?? {});
   };
@@ -170,35 +237,54 @@ export default function ServiceMapPage() {
   );
   const center = pinnedCenter ?? fallbackCenter;
 
-  // ✅ AGENT: Removed redundant useJsApiLoader as it is now handled by the global GoogleMapsProvider
-  const isLoaded = true; 
-
   const dummyShops = useMemo(() => generateDummyDrivers(center, 8), [center.lat, center.lng]);
 
-  const onSelectShop = (id: string) => setSelectedShop(id);
+  // Filter and sort shops
+  const filteredAndSortedShops = useMemo(() => {
+    let list = [...dummyShops];
 
-  const sortedShops = useMemo(() => {
-    const list = [...dummyShops];
+    // Apply search filter
+    if (searchDebounced.trim()) {
+      const query = searchDebounced.toLowerCase();
+      list = list.filter(shop =>
+        shop.name.toLowerCase().includes(query) ||
+        shop.driver.toLowerCase().includes(query) ||
+        shop.truck.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply rating filter
+    if (ratingFilter === '4+') {
+      list = list.filter(shop => shop.rating >= 4.0);
+    } else if (ratingFilter === '4.5+') {
+      list = list.filter(shop => shop.rating >= 4.5);
+    }
+
+    // Apply distance filter
+    list = list.filter(shop => shop.distanceMi <= maxDistance);
+
+    // Apply sorting
     list.sort((a, b) => {
       if (sortParam === 'nearest') return a.distanceMi - b.distanceMi;
       if (sortParam === 'fastest') return a.etaMins - b.etaMins;
       if (sortParam === 'rated') return b.rating - a.rating;
-      return bestMatchScore(b) - bestMatchScore(a); // recommended
+      return bestMatchScore(b) - bestMatchScore(a);
     });
-    return list;
-  }, [dummyShops, sortParam]);
 
-  const handlePinLocation = () => {
+    return list;
+  }, [dummyShops, sortParam, ratingFilter, maxDistance, searchDebounced]);
+
+  const onSelectShop = useCallback((id: string) => setSelectedShop(id), []);
+
+  const handlePinLocation = useCallback(() => {
     if (!('geolocation' in navigator)) return;
     logPin('CLICK/START');
-    // Clean up any previous watch (user may click repeatedly).
+
     if (watchIdRef.current != null) {
-      logPin('CLEAR_WATCH_PREVIOUS', { watchId: watchIdRef.current });
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
     if (pinTimeoutRef.current != null) {
-      logPin('CLEAR_TIMEOUT_PREVIOUS', { timeoutId: pinTimeoutRef.current });
       window.clearTimeout(pinTimeoutRef.current);
       pinTimeoutRef.current = null;
     }
@@ -210,7 +296,7 @@ export default function ServiceMapPage() {
 
     let bestAcc: number | null = null;
     let bestCenter: LatLng | null = null;
-    const ACCCEPTABLE_M = 600; // prefer a decent GPS fix
+    const ACCEPTABLE_M = 600;
     const DEADLINE_MS = 60000;
 
     const handlePosition = (pos: GeolocationPosition, source: string) => {
@@ -218,32 +304,24 @@ export default function ServiceMapPage() {
       const acc = typeof pos.coords.accuracy === 'number' ? pos.coords.accuracy : null;
       logPin('GPS_UPDATE', { source, lat: next.lat, lng: next.lng, accuracyM: acc });
 
-      // Keep updating UI to the best accuracy candidate.
       const shouldReplace = acc != null && (bestAcc == null || acc < bestAcc);
       if (shouldReplace) {
-        logPin('UPDATE_BEST', { prevBestAccM: bestAcc, nextAccM: acc, nextLat: next.lat, nextLng: next.lng });
         bestAcc = acc;
         bestCenter = next;
         setPinnedCenter(next);
         setPinnedAccuracyM(acc);
       } else if (bestCenter == null) {
-        // If we don't have any candidate yet, still show something.
-        logPin('FIRST_CANDIDATE', { source, nextAccM: acc, nextLat: next.lat, nextLng: next.lng });
         bestCenter = next;
         setPinnedCenter(next);
         setPinnedAccuracyM(acc);
       }
 
-      // Accept immediately if accuracy is good.
-      if (acc != null && acc <= ACCCEPTABLE_M) {
-        logPin('ACCEPT_EARLY', { source, acceptedAccM: acc, thresholdM: ACCCEPTABLE_M });
+      if (acc != null && acc <= ACCEPTABLE_M) {
         if (watchIdRef.current != null) {
-          logPin('CLEAR_WATCH_ACCEPT', { watchId: watchIdRef.current });
           navigator.geolocation.clearWatch(watchIdRef.current);
           watchIdRef.current = null;
         }
         if (pinTimeoutRef.current != null) {
-          logPin('CLEAR_TIMEOUT_ACCEPT', { timeoutId: pinTimeoutRef.current });
           window.clearTimeout(pinTimeoutRef.current);
           pinTimeoutRef.current = null;
         }
@@ -260,15 +338,12 @@ export default function ServiceMapPage() {
     };
 
     const failure = (err: GeolocationPositionError) => {
-      // Silent fallback: keep current center and demo pins.
       logPin('GPS_FAILURE', { code: err?.code, message: err?.message });
       if (watchIdRef.current != null) {
-        logPin('CLEAR_WATCH_FAILURE', { watchId: watchIdRef.current });
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
       if (pinTimeoutRef.current != null) {
-        logPin('CLEAR_TIMEOUT_FAILURE', { timeoutId: pinTimeoutRef.current });
         window.clearTimeout(pinTimeoutRef.current);
         pinTimeoutRef.current = null;
       }
@@ -284,12 +359,9 @@ export default function ServiceMapPage() {
       enableHighAccuracy: true,
       maximumAge: 0,
     });
-    logPin('WATCH_STARTED', { watchId: watchIdRef.current, enableHighAccuracy: true, maximumAge: 0, timeoutMs: DEADLINE_MS });
+    logPin('WATCH_STARTED', { watchId: watchIdRef.current });
 
-    // Fallback: some browsers/devices may not fire watch callbacks.
-    // If that happens, getCurrentPosition often succeeds and gives us a usable fix.
     try {
-      logPin('GETCURRENT_REQUESTED', { enableHighAccuracy: false, timeoutMs: 20000 });
       navigator.geolocation.getCurrentPosition(
         (pos) => handlePosition(pos, 'getCurrentPosition'),
         (err) => logPin('GETCURRENT_FAILURE', { code: err?.code, message: err?.message }),
@@ -300,27 +372,22 @@ export default function ServiceMapPage() {
     }
 
     pinTimeoutRef.current = window.setTimeout(() => {
-      // Deadline reached: if we found any candidate, accept it; otherwise keep demo center.
       logPin('DEADLINE_TIMEOUT_FIRED', { bestAccM: bestAcc, bestCenter });
       if (watchIdRef.current != null) {
-        logPin('CLEAR_WATCH_DEADLINE', { watchId: watchIdRef.current });
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
       if (pinTimeoutRef.current != null) {
-        logPin('CLEAR_TIMEOUT_DEADLINE', { timeoutId: pinTimeoutRef.current });
         window.clearTimeout(pinTimeoutRef.current);
         pinTimeoutRef.current = null;
       }
 
       if (bestCenter) {
-        logPin('ACCEPT_AT_DEADLINE', { bestAcc, bestLat: bestCenter.lat, bestLng: bestCenter.lng });
         setPinnedCenter(bestCenter);
         setPinnedAccuracyM(bestAcc);
         store.setLocation(bestCenter.lat, bestCenter.lng, 'Pinned location (demo)');
         setHasPinned(true);
       } else {
-        logPin('NO_CANDIDATE_DEADLINE');
         setHasPinned(false);
       }
 
@@ -328,41 +395,279 @@ export default function ServiceMapPage() {
       setDrawerShop(null);
       setLocating(false);
     }, DEADLINE_MS);
-  };
+  }, [store]);
+
+  const clearFilters = useCallback(() => {
+    setRatingFilter('all');
+    setMaxDistance(15);
+    setSearchQuery('');
+  }, []);
+
+  const hasActiveFilters = ratingFilter !== 'all' || maxDistance < 15 || searchDebounced.trim();
+
+  // Quick filter presets
+  const quickFilters = [
+    { label: '⚡ Under 15min', fn: () => { setSortParam('fastest'); setMaxDistance(5); } },
+    { label: '⭐ 4.5+ Only', fn: () => setRatingFilter('4.5+') },
+    { label: '📍 Within 5mi', fn: () => setMaxDistance(5) },
+  ];
 
   return (
-    <main className="relative min-h-[100dvh] w-full bg-background overflow-hidden font-sans text-foreground">
+    <main className="relative min-h-[100dvh] w-full bg-slate-50 overflow-hidden font-sans text-slate-900">
+      {/* Top Floating Header - Enhanced */}
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="absolute top-0 left-0 right-0 z-20 flex flex-col gap-3 p-4 bg-gradient-to-b from-white via-white/95 to-transparent pb-6"
+      >
+        {/* Top bar */}
+        <div className="flex items-center justify-between">
+          <motion.button
+            onClick={() => router.push('/emergency-report')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl active:scale-95 transition-transform"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </motion.button>
 
-      {/* Top Floating Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-background via-background/80 to-transparent pb-10">
-        <button
-          onClick={() => router.push('/emergency-report')}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-surface border border-white/10 shadow-xl active:scale-95 transition-transform"
-        >
-          <ChevronLeft className="h-6 w-6 pr-0.5" />
-        </button>
+          <motion.button
+            onClick={() => router.push('/checkout')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl active:scale-95 transition-transform"
+            aria-label="View cart"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            <AnimatePresence>
+              {cart.items.length > 0 && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#10b981] to-[#059669] text-[10px] font-bold text-white border-2 border-white shadow-lg"
+                >
+                  {cart.items.length}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
 
-        <button
-          onClick={() => router.push('/checkout')}
-          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-surface border border-white/10 shadow-xl active:scale-95 transition-transform"
+        {/* Search bar - Enhanced */}
+        <motion.div
+          className="relative"
+          animate={{
+            scale: isSearchFocused ? 1.02 : 1,
+          }}
+          transition={{ duration: 0.2 }}
         >
-          <ShoppingCart className="h-5 w-5" />
-          {cart.items.length > 0 && (
-            <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white border-2 border-surface">
-              {cart.items.length}
-            </div>
+          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 transition-colors ${isSearchFocused ? 'text-[#10b981]' : 'text-neutral-400'}`} />
+          <input
+            type="text"
+            placeholder="Search by name, driver, or truck..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            className="w-full h-12 pl-11 pr-10 bg-white/80 backdrop-blur-sm border border-slate-300 rounded-full text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#10b981]/50 focus:ring-2 focus:ring-[#10b981]/20 transition-all"
+            aria-label="Search service providers"
+          />
+          {searchQuery && (
+            <motion.button
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/10 rounded-full transition-colors"
+              aria-label="Clear search"
+            >
+              <X size={15} className="text-neutral-500" />
+            </motion.button>
           )}
-        </button>
-      </div>
+        </motion.div>
 
-      {/* Map Layer */}
-      <div className="absolute inset-0 z-0 bg-neutral-900 flex items-center justify-center">
-        {!isLoaded ? (
-          <div className="flex flex-col items-center gap-3 text-neutral-500">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="text-small font-bold uppercase tracking-widest text-primary">Map Engine</span>
+        {/* Action buttons - Enhanced */}
+        <div className="flex items-center gap-2">
+          <motion.button
+            type="button"
+            onClick={handlePinLocation}
+            disabled={locating}
+            whileHover={{ scale: locating ? 1 : 1.02 }}
+            whileTap={{ scale: locating ? 1 : 0.98 }}
+            className="flex-1 flex items-center justify-center gap-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-white px-3 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-transform disabled:opacity-60"
+          >
+            {locating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#10b981]" />
+            ) : hasPinned ? (
+              <Target size={14} className="text-[#00D16C]" />
+            ) : (
+              <MapPin size={14} />
+            )}
+            {locating ? 'Pinning…' : hasPinned ? 'Pinned' : 'Pin Location'}
+          </motion.button>
+
+          <motion.button
+            onClick={() => setShowFilters(!showFilters)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all ${
+              showFilters || hasActiveFilters
+                ? 'bg-[#10b981]/10 border-[#10b981]/50 text-[#10b981]'
+                : 'bg-white/90 backdrop-blur-sm border-slate-200 text-neutral-400'
+            }`}
+            aria-expanded={showFilters}
+            aria-label="Toggle filters"
+          >
+            <SlidersHorizontal size={14} />
+            Filters
+            {hasActiveFilters && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-2 h-2 bg-[#10b981] rounded-full"
+              />
+            )}
+          </motion.button>
+
+          <motion.div 
+            className="flex items-center gap-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-white px-3 py-2.5 rounded-full"
+            whileHover={{ scale: 1.02 }}
+          >
+            <Clock size={14} />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              {locating
+                ? 'Pinning…'
+                : hasPinned
+                  ? pinnedAccuracyM != null
+                    ? `±${Math.round(pinnedAccuracyM)}m`
+                    : 'GPS'
+                  : 'Demo'}
+            </span>
+          </motion.div>
+        </div>
+
+        {/* Quick filter presets */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+          {quickFilters.map((filter, idx) => (
+            <motion.button
+              key={filter.label}
+              onClick={filter.fn}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-none px-3 py-1.5 bg-white/80 border border-slate-200 rounded-full text-[9px] font-bold text-neutral-400 hover:text-white hover:border-slate-300 transition-all whitespace-nowrap"
+            >
+              {filter.label}
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Filter panel - Enhanced */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl p-4"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Filter size={14} className="text-[#10b981]" />
+                  <span className="text-xs font-black text-white uppercase tracking-widest">Filters</span>
+                </div>
+                {hasActiveFilters && (
+                  <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    onClick={clearFilters}
+                    className="text-[10px] text-[#10b981] font-bold uppercase tracking-widest hover:underline flex items-center gap-1"
+                  >
+                    <X size={10} />
+                    Clear All
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Rating filter */}
+              <div className="mb-4">
+                <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block flex items-center gap-2">
+                  <Star size={10} className="text-[#FFD700]" />
+                  Minimum Rating
+                </label>
+                <div className="flex gap-2">
+                  {(['all', '4+', '4.5+'] as RatingFilter[]).map((rating) => (
+                    <motion.button
+                      key={rating}
+                      onClick={() => setRatingFilter(rating)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                        ratingFilter === rating
+                          ? 'bg-gradient-to-r from-[#10b981] to-[#059669] text-white shadow-lg shadow-[#10b981]/20'
+                          : 'bg-slate-100 text-neutral-400 hover:bg-white/10'
+                      }`}
+                    >
+                      {rating === 'all' ? 'All' : `⭐ ${rating}`}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Distance filter */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                    <MapPin size={10} className="text-[#10b981]" />
+                    Max Distance
+                  </label>
+                  <span className="text-xs font-black text-[#10b981] bg-[#10b981]/10 px-2 py-1 rounded-lg">{maxDistance} mi</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="15"
+                  value={maxDistance}
+                  onChange={(e) => setMaxDistance(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-[#10b981] [&::-webkit-slider-thumb]:to-[#059669] [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white"
+                  aria-label="Maximum distance filter"
+                />
+                <div className="flex justify-between mt-1.5 text-[9px] text-slate-500 font-bold">
+                  <span>1mi</span>
+                  <span>15mi</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Map Layer - Enhanced */}
+      <div className="absolute inset-0 z-0 bg-[#070707]">
+        {loadError ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-neutral-400">
+            <AlertCircle className="h-12 w-12 text-[#10b981]" />
+            <div className="text-center">
+              <p className="text-base font-bold text-white mb-1">Map Loading Error</p>
+              <p className="text-sm text-neutral-500 mb-4">Unable to load the map. Please check your connection.</p>
+              <motion.button
+                onClick={() => window.location.reload()}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 mx-auto px-4 py-2 bg-[#10b981] text-white rounded-full text-xs font-bold uppercase tracking-widest"
+              >
+                <RefreshCw size={14} />
+                Retry
+              </motion.button>
+            </div>
           </div>
-        ) : (
+        ) : mapLoaded ? (
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
             center={center}
@@ -375,147 +680,190 @@ export default function ServiceMapPage() {
               scrollwheel: false,
               disableDoubleClickZoom: true,
               clickableIcons: false,
-              styles: [
-                { elementType: 'geometry', stylers: [{ color: '#1A1A2E' }] },
-                { elementType: 'labels.text.stroke', stylers: [{ color: '#1A1A2E' }] },
-                { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#0D0D0D' }] },
-                { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#252528' }] },
-              ],
+              styles: MAP_STYLES,
             }}
           >
-            {/* Map overlay action */}
-            <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handlePinLocation}
-                disabled={locating}
-                className="flex items-center gap-2 bg-surface border border-white/10 text-white px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-transform disabled:opacity-60"
-              >
-                <Search size={14} />
-                {locating ? 'Pinning…' : hasPinned ? 'Pinned • Search again' : 'Search for drivers'}
-              </button>
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 text-white px-3 py-2 rounded-full">
-                <Clock size={14} />
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  {locating
-                    ? 'Pinning…'
-                    : hasPinned
-                      ? pinnedAccuracyM != null
-                        ? `Pinned • ±${Math.round(pinnedAccuracyM)}m`
-                        : 'Pinned • GPS'
-                      : `Demo • ${center.lat.toFixed(2)},${center.lng.toFixed(2)}`}
-                </span>
-              </div>
-            </div>
-
-            {/* User/GPS marker (red) or demo-center marker (gray) */}
-            {locating ? (
-              <MarkerF
-                position={center}
-                icon={{
-                  url: "data:image/svg+xml,%3Csvg height='26' width='26' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='13' cy='13' r='10' fill='%23f59e0b' stroke='%23ffffff' stroke-width='2' /%3E%3C/svg%3E",
-                }}
-              />
-            ) : hasPinned && pinnedCenter ? (
-              <MarkerF
-                position={pinnedCenter}
-                icon={{
-                  url: "data:image/svg+xml,%3Csvg height='26' width='26' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='13' cy='13' r='10' fill='%23ef4444' stroke='%23ffffff' stroke-width='2' /%3E%3C/svg%3E",
-                }}
-              />
-            ) : (
-              <MarkerF
-                position={center}
-                icon={{
-                  url: "data:image/svg+xml,%3Csvg height='22' width='22' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8' fill='%2394a3b8' stroke='%23ffffff' stroke-width='2' /%3E%3C/svg%3E",
-                }}
-              />
-            )}
+            {/* User/GPS marker - Enhanced */}
+            <MarkerF
+              position={center}
+              icon={{
+                url: locating
+                  ? "data:image/svg+xml,%3Csvg height='34' width='34' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='17' cy='17' r='12' fill='%23FFA500' stroke='%23ffffff' stroke-width='3'/%3E%3Ccircle cx='17' cy='17' r='6' fill='%23fff'/%3E%3C/svg%3E"
+                  : hasPinned
+                    ? "data:image/svg+xml,%3Csvg height='34' width='34' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='17' cy='17' r='12' fill='%23FF3B3B' stroke='%23ffffff' stroke-width='3'/%3E%3Ccircle cx='17' cy='17' r='6' fill='%23fff'/%3E%3C/svg%3E"
+                    : "data:image/svg+xml,%3Csvg height='28' width='28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='14' cy='14' r='10' fill='%2364748b' stroke='%23ffffff' stroke-width='2.5'/%3E%3Ccircle cx='14' cy='14' r='5' fill='%23fff'/%3E%3C/svg%3E",
+                scaledSize: { width: locating || hasPinned ? 34 : 28, height: locating || hasPinned ? 34 : 28 } as any,
+              }}
+              zIndex={100}
+            />
 
             {/* Shop Locations */}
-            {dummyShops.map(shop => (
+            {filteredAndSortedShops.map((shop) => (
               <MarkerF
                 key={shop.id}
                 position={{ lat: shop.lat, lng: shop.lng }}
-                icon={{ url: DRIVER_ICON, scaledSize: { width: 32, height: 32 } as any }}
+                icon={{
+                  url: DRIVER_ICON,
+                  scaledSize: { width: 46, height: 46 } as any,
+                  anchor: { x: 23, y: 23 } as any,
+                }}
                 onClick={() => { onSelectShop(shop.id); setDrawerShop(shop); }}
                 animation={selectedShop === shop.id ? 1 : undefined}
+                zIndex={selectedShop === shop.id ? 10 : 1}
               />
             ))}
           </GoogleMap>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-neutral-500">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            >
+              <Loader2 className="h-10 w-10 text-[#10b981]" />
+            </motion.div>
+            <div className="text-center">
+              <p className="text-sm font-bold uppercase tracking-widest text-[#10b981]">Loading Map</p>
+              <p className="text-xs text-slate-500 mt-1">Please wait...</p>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Bottom Sheet */}
-      <MapSheet>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between sticky top-0 bg-surface/95 pt-2 pb-4 z-10">
-            <h2 className="text-h3 font-black text-white">Drivers near you</h2>
-            <div className="text-micro text-neutral-400 font-bold uppercase tracking-widest border border-white/10 rounded-full px-2 py-1 bg-white/5">
-              {dummyShops.length} Available
+      {/* Bottom Sheet - Enhanced */}
+      <MapSheet
+        title="Available Drivers"
+        subtitle={`${filteredAndSortedShops.length} found`}
+      >
+        {/* Sort Pills - Enhanced */}
+        <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar py-1">
+          {([
+            ['recommended', '⭐ Best Match'],
+            ['nearest',    '📍 Nearest'],
+            ['fastest',    '⚡ Fastest'],
+            ['rated',      '🏆 Top Rated'],
+          ] as [SortParam, string][]).map(([p, label]) => (
+            <motion.button
+              key={p}
+              onClick={() => setSortParam(p)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex-none px-4 py-2.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                sortParam === p
+                  ? 'border-[#10b981] bg-gradient-to-r from-[#10b981]/15 to-[#10b981]/5 text-[#10b981] shadow-lg shadow-[#10b981]/10'
+                  : 'border-slate-200 bg-white text-neutral-400 hover:bg-slate-100 hover:border-slate-300'
+              }`}
+            >
+              {label}
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Results info */}
+        {hasActiveFilters && (
+          <motion.div 
+            className="flex items-center justify-between mb-3 px-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest flex items-center gap-1">
+              <Filter size={8} />
+              {filteredAndSortedShops.length} of {dummyShops.length} drivers
+            </span>
+            <button
+              onClick={clearFilters}
+              className="text-[10px] text-[#10b981] font-bold uppercase tracking-widest hover:underline"
+            >
+              Clear filters
+            </button>
+          </motion.div>
+        )}
+
+        {/* Shop List - Enhanced with loading and empty states */}
+        <div className="space-y-3 pb-safe">
+          {!mapLoaded ? (
+            // Loading state
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="h-28 bg-white rounded-2xl animate-pulse"
+                />
+              ))}
             </div>
-          </div>
-
-          {/* Where the app thinks the center/pins are */}
-          <div className="text-[10px] text-neutral-300 font-bold uppercase tracking-widest">
-            Center: {center.lat.toFixed(4)}, {center.lng.toFixed(4)}{" "}
-            {locating
-              ? "• pinning GPS"
-              : hasPinned
-                ? pinnedAccuracyM != null
-                  ? `• GPS ±${Math.round(pinnedAccuracyM)}m`
-                  : "• GPS"
-                : "• demo / stored center"}
-          </div>
-
-          {/* Sort Pills — Best Match is now the default */}
-          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar py-1 text-micro font-bold uppercase tracking-widest">
-            {([
-              ['recommended', '⭐ Best Match'],
-              ['nearest',    '📍 Nearest'],
-              ['fastest',    '⚡ Fastest'],
-              ['rated',      '🏆 Top Rated'],
-            ] as [SortParam, string][]).map(([p, label]) => (
-              <button
-                key={p}
-                onClick={() => setSortParam(p)}
-                className={`flex-none px-4 py-2 rounded-full border transition-all ${
-                  sortParam === p
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-white/10 bg-surface text-neutral-400 hover:bg-white/5'
-                }`}
+          ) : filteredAndSortedShops.length === 0 ? (
+            // Empty state
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16 px-4"
+            >
+              <motion.div 
+                className="text-5xl mb-4"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Shop List */}
-          <div className="space-y-3 pb-safe">
-            {sortedShops.map((shop, i) => (
-              <div key={shop.id} onClick={() => { onSelectShop(shop.id); setDrawerShop(shop); }}>
-                  <ShopCard
-                    {...shop}
-                    image={shop.image || ''}
-                    selected={selectedShop === shop.id}
-                    onClick={() => { onSelectShop(shop.id); setDrawerShop(shop); }}
-                  />
-                {i === 0 && sortParam === 'recommended' && (
-                  <div className="mt-1 ml-3 text-[9px] font-bold uppercase tracking-widest text-emerald-400">
-                    ⭐ Best Match
-                  </div>
+                🔍
+              </motion.div>
+              <h3 className="text-lg font-bold text-white mb-2">No drivers found</h3>
+              <p className="text-sm text-neutral-500 mb-6 max-w-xs mx-auto">
+                {searchDebounced 
+                  ? `No results for "${searchDebounced}". Try a different search term.`
+                  : 'Try adjusting your filters or expanding your search area.'}
+              </p>
+              <div className="flex flex-col gap-2">
+                {hasActiveFilters && (
+                  <motion.button
+                    onClick={clearFilters}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-6 py-3 bg-[#10b981] text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#10b981]/90 transition-colors"
+                  >
+                    Clear All Filters
+                  </motion.button>
                 )}
+                <motion.button
+                  onClick={() => { setMaxDistance(15); setRatingFilter('all'); }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-6 py-3 bg-white text-white rounded-full text-xs font-bold uppercase tracking-widest border border-slate-200 hover:border-slate-300 transition-colors"
+                >
+                  Expand Search Area
+                </motion.button>
               </div>
-            ))}
-          </div>
+            </motion.div>
+          ) : (
+            // Shop cards
+            filteredAndSortedShops.map((shop, i) => (
+              <motion.div
+                key={shop.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <ShopCard
+                  {...shop}
+                  image={shop.image || ''}
+                  selected={selectedShop === shop.id}
+                  isBestMatch={i === 0 && sortParam === 'recommended'}
+                  onClick={() => { onSelectShop(shop.id); setDrawerShop(shop); }}
+                />
+              </motion.div>
+            ))
+          )}
         </div>
       </MapSheet>
 
       {/* Shop Drawer */}
-      {drawerShop && (
-        <ShopDrawer shop={drawerShop} onClose={() => setDrawerShop(null)} />
-      )}
+      <AnimatePresence>
+        {drawerShop && (
+          <ShopDrawer shop={drawerShop} onClose={() => setDrawerShop(null)} />
+        )}
+      </AnimatePresence>
     </main>
   );
 }
+
+

@@ -44,20 +44,7 @@ export default function LandingPage() {
             <span className="text-lg font-black tracking-tighter uppercase italic">SwiftTow</span>
           </div>
 
-          {/* Nav links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600">
-            <a href="#services" className="hover:text-slate-900 transition-colors">Services</a>
-            <a href="#fleet" className="hover:text-slate-900 transition-colors">Fleet</a>
-            <button 
-              onClick={() => router.push('/service-map')}
-              className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 transition-colors"
-            >
-              <MapPin size={15} /> Track My Driver
-            </button>
-            <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow shadow-slate-200/50">
-              Call +1 (415) 555-0123
-            </button>
-          </div>
+
         </div>
       </nav>
       <LiveTicker />
