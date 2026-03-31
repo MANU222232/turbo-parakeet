@@ -69,9 +69,8 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
       `🏪 Company: ${shop.name}\n` +
       `🔧 Services: ${selectedSvcNames}\n` +
       `📍 Location: [Your location]\n` +
-      `⏱ ETA: ${shop.etaMins} minutes\n` +
-      `💰 Estimated Total: $${grandTotal.toFixed(2)}\n\n` +
-      `Please confirm availability and pricing.`
+      `⏱ ETA: ${shop.etaMins} minutes\n\n` +
+      `Please confirm availability.`
     );
 
     window.open(`https://wa.me/12089695688?text=${message}`, '_blank');
@@ -394,11 +393,6 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                     <span className="text-lg font-bold text-white">${storeTotal.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-base font-bold text-white">Total Estimate</span>
-                  <span className="text-2xl font-black text-[#FF6200]">${grandTotal.toFixed(2)}</span>
-                </div>
-
                 <motion.button
                   onClick={handleBook}
                   whileHover={{ scale: 1.02 }}
