@@ -382,7 +382,6 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                     <Wrench size={14} className="text-[#FF6200]" />
                     Services ({selectedServices.length})
                   </span>
-                  <span className="text-lg font-bold text-white">${svcTotal.toFixed(2)}</span>
                 </div>
                 {storeTotal > 0 && (
                   <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/10">
@@ -402,10 +401,6 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                   <MessageCircle size={18} strokeWidth={2.5} />
                   Book {shop.driver} via WhatsApp →
                 </motion.button>
-                
-                <div className="text-center mt-3 text-[9px] text-neutral-500">
-                  🔒 Payment held in escrow · Released after job completion
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
