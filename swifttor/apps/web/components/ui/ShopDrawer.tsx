@@ -289,7 +289,6 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-neutral-400">${svc.price}</span>
                       <motion.div
                         animate={{
                           scale: sel ? 1 : 0,
@@ -359,8 +358,7 @@ export default function ShopDrawer({ shop, onClose }: ShopDrawerProps) {
                         aria-pressed={inCart}
                       >
                         <div className="text-3xl mb-1.5">{item.emoji}</div>
-                        <div className="text-xs font-bold text-white mb-1">{item.name}</div>
-                        <div className="text-[10px] text-[#00D16C] font-black">${item.price.toFixed(2)}</div>
+                        <div className="text-xs font-bold text-white">{item.name}</div>
                       </motion.button>
                     );
                   })}
