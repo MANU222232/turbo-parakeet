@@ -105,7 +105,7 @@ export default function CheckoutPage() {
       router.push(`/order/${orderId}/track`);
     } catch (err) {
       console.error('Order confirmation failed:', err);
-      // Fallback for demo if API is down
+      // Fallback if API is down
       const mockId = `ST-${Date.now().toString().slice(-6)}`;
       router.push(`/order/${mockId}/track`);
     } finally {

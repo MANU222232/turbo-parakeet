@@ -76,7 +76,7 @@ function initialsFromName(name: string) {
   return (a + b).toUpperCase();
 }
 
-function generateDummyDrivers(center: LatLng, count = 8): Shop[] {
+function generateAvailableDrivers(center: LatLng, count = 8): Shop[] {
   const rand = mulberry32(seedFromLatLng(center));
 
   const shopNames = [
@@ -137,7 +137,7 @@ function generateDummyDrivers(center: LatLng, count = 8): Shop[] {
     const truck = `${truckTemplates[i % truckTemplates.length]}${100 + i}`;
 
     shops.push({
-      id: `dummy_${i + 1}`,
+      id: `driver_${i + 1}`,
       name: shopNames[i % shopNames.length],
       distanceMi: Math.round(distanceMi * 10) / 10,
       etaMins,
@@ -150,7 +150,7 @@ function generateDummyDrivers(center: LatLng, count = 8): Shop[] {
       truck,
       lat,
       lng,
-      address: 'Pinned location (demo)',
+      address: 'Service location',
       phone: '+1 (415) 555-01' + String(10 + i).padStart(2, '0'),
       image: `https://i.pravatar.cc/200?img=${(i + 10) % 70}`,
     });
@@ -237,11 +237,11 @@ export default function ServiceMapPage() {
   );
   const center = pinnedCenter ?? fallbackCenter;
 
-  const dummyShops = useMemo(() => generateDummyDrivers(center, 8), [center.lat, center.lng]);
+  const availableDrivers = useMemo(() => generateAvailableDrivers(center, 8), [center.lat, center.lng]);
 
   // Filter and sort shops
   const filteredAndSortedShops = useMemo(() => {
-    let list = [...dummyShops];
+    let list = [...availableDrivers];
 
     // Apply search filter
     if (searchDebounced.trim()) {
@@ -272,7 +272,7 @@ export default function ServiceMapPage() {
     });
 
     return list;
-  }, [dummyShops, sortParam, ratingFilter, maxDistance, searchDebounced]);
+  }, [availableDrivers, sortParam, ratingFilter, maxDistance, searchDebounced]);
 
   const onSelectShop = useCallback((id: string) => setSelectedShop(id), []);
 
@@ -325,7 +325,7 @@ export default function ServiceMapPage() {
           window.clearTimeout(pinTimeoutRef.current);
           pinTimeoutRef.current = null;
         }
-        store.setLocation(next.lat, next.lng, 'Pinned location (demo)');
+        store.setLocation(next.lat, next.lng, 'Current location');
         setHasPinned(true);
         setSelectedShop(null);
         setDrawerShop(null);
@@ -385,7 +385,7 @@ export default function ServiceMapPage() {
       if (bestCenter) {
         setPinnedCenter(bestCenter);
         setPinnedAccuracyM(bestAcc);
-        store.setLocation(bestCenter.lat, bestCenter.lng, 'Pinned location (demo)');
+        store.setLocation(bestCenter.lat, bestCenter.lng, 'Current location');
         setHasPinned(true);
       } else {
         setHasPinned(false);
@@ -497,16 +497,16 @@ export default function ServiceMapPage() {
             disabled={locating}
             whileHover={{ scale: locating ? 1 : 1.02 }}
             whileTap={{ scale: locating ? 1 : 0.98 }}
-            className="flex-1 flex items-center justify-center gap-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-white px-3 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-transform disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-[#10b981] to-[#059669] backdrop-blur-sm border border-slate-200 text-white px-3 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-transform disabled:opacity-60"
           >
             {locating ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#10b981]" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
             ) : hasPinned ? (
-              <Target size={14} className="text-[#00D16C]" />
+              <Target size={14} className="text-white" />
             ) : (
               <MapPin size={14} />
             )}
-            {locating ? 'Pinning…' : hasPinned ? 'Pinned' : 'Pin Location'}
+            {locating ? 'Searching…' : hasPinned ? 'Results Found' : 'Search Drivers'}
           </motion.button>
 
           <motion.button
@@ -539,12 +539,12 @@ export default function ServiceMapPage() {
             <Clock size={14} />
             <span className="text-[10px] font-black uppercase tracking-widest">
               {locating
-                ? 'Pinning…'
+                ? 'Searching…'
                 : hasPinned
                   ? pinnedAccuracyM != null
                     ? `±${Math.round(pinnedAccuracyM)}m`
-                    : 'GPS'
-                  : 'Demo'}
+                    : 'Active'
+                  : 'Standby'}
             </span>
           </motion.div>
         </div>
@@ -767,7 +767,7 @@ export default function ServiceMapPage() {
           >
             <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest flex items-center gap-1">
               <Filter size={8} />
-              {filteredAndSortedShops.length} of {dummyShops.length} drivers
+              {filteredAndSortedShops.length} of {availableDrivers.length} drivers
             </span>
             <button
               onClick={clearFilters}

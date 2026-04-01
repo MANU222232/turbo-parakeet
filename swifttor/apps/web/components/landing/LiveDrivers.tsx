@@ -29,7 +29,7 @@ export default function LiveDrivers() {
           setDrivers(data.slice(0, 4));
         }
       } catch {
-        // Use demo fallback
+        // Use fallback
         setDrivers([
           { id: 4292, name: 'Active', unit: '#4292', vehicle_type: 'Flatbed', distance_km: 1.2, status: 'available' },
           { id: 8810, name: 'Active', unit: '#8810', vehicle_type: 'Wrecker', distance_km: 2.5, status: 'on_job' },

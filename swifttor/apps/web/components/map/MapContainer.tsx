@@ -41,7 +41,7 @@ interface MapContainerProps {
   center?: LatLng;
   drivers?: Driver[];
   selectedDriverId?: string | number | null;
-  pinState?: 'demo' | 'pinning' | 'pinned';
+  pinState?: 'available' | 'searching' | 'found';
   accuracyMeters?: number | null;
   onDriverClick?: (driverId: string | number) => void;
   onMapClick?: (lat: number, lng: number) => void;
@@ -80,11 +80,11 @@ const generateDriverMarker = (isSelected: boolean, rating: number = 4.5, eta?: n
 };
 
 // Generate SVG for user location pin with enhanced pulse
-const generateUserPin = (state: 'demo' | 'pinning' | 'pinned', accuracyMeters?: number | null) => {
+const generateUserPin = (state: 'available' | 'searching' | 'found', accuracyMeters?: number | null) => {
   const config = {
-    demo: { fill: '#64748b', stroke: '#94a3b8', pulse: false },
-    pinning: { fill: '#FFA500', stroke: '#FFB84D', pulse: true },
-    pinned: { fill: '#FF3B3B', stroke: '#FF6B6B', pulse: true },
+    available: { fill: '#64748b', stroke: '#94a3b8', pulse: false },
+    searching: { fill: '#FFA500', stroke: '#FFB84D', pulse: true },
+    found: { fill: '#FF3B3B', stroke: '#FF6B6B', pulse: true },
   };
 
   const { fill, stroke, pulse } = config[state];
@@ -157,7 +157,7 @@ export default function MapContainer({
   center,
   drivers = [],
   selectedDriverId = null,
-  pinState = 'demo',
+  pinState = 'available',
   accuracyMeters = null,
   onDriverClick,
   onMapClick,
@@ -249,7 +249,7 @@ export default function MapContainer({
         />
 
         {/* Accuracy Circle for Pinned Location */}
-        {pinState === 'pinned' && accuracyMeters && mapInstance && (
+        {pinState === 'found' && accuracyMeters && mapInstance && (
           <Circle
             center={activeCenter}
             radius={accuracyMeters}

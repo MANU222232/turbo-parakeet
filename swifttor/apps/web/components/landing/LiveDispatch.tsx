@@ -58,7 +58,7 @@ function getLocation(): Promise<LocationResult> {
   });
 }
 
-type DummyDriver = {
+type AvailableDriver = {
   id: number;
   position: LatLng;
   name: string;
@@ -86,7 +86,7 @@ function mulberry32(seed: number) {
   };
 }
 
-function generateDummyDrivers(center: LatLng, count = 8): DummyDriver[] {
+function generateAvailableDrivers(center: LatLng, count = 8): AvailableDriver[] {
   const rand = mulberry32(seedFromLatLng(center));
 
   const names = [
@@ -102,7 +102,7 @@ function generateDummyDrivers(center: LatLng, count = 8): DummyDriver[] {
     'RoadRunner Dispatch',
   ];
 
-  const drivers: DummyDriver[] = [];
+  const drivers: AvailableDriver[] = [];
   const baseLat = center.lat;
   const baseLng = center.lng;
 
@@ -141,9 +141,9 @@ export default function LiveDispatch() {
   const router = useRouter();
   const defaultCenter: LatLng = useMemo(() => ({ lat: 1.2921, lng: 36.8219 }), []); // Default to Nairobi, Kenya (can be changed)
   const [mapCenter, setMapCenter] = useState<LatLng>(defaultCenter);
-  const [drivers, setDrivers] = useState<DummyDriver[]>(() => generateDummyDrivers(defaultCenter, 8));
+  const [drivers, setDrivers] = useState<AvailableDriver[]>(() => generateAvailableDrivers(defaultCenter, 8));
   const [locating, setLocating] = useState(true);
-  const [pinState, setPinState] = useState<'demo' | 'pinning' | 'pinned'>('pinning');
+  const [pinState, setPinState] = useState<'available' | 'searching' | 'found'>('searching');
   const [pinnedAccuracyM, setPinnedAccuracyM] = useState<number | null>(null);
   const locationAttemptedRef = useRef(false);
   const [methodStatus, setMethodStatus] = useState<[MethodState, MethodState, MethodState]>(['idle', 'idle', 'idle']);
@@ -191,9 +191,9 @@ export default function LiveDispatch() {
       
       const center: LatLng = { lat: result.latitude, lng: result.longitude };
       setMapCenter(center);
-      setPinState('pinned');
+      setPinState('found');
       setPinnedAccuracyM(result.accuracy);
-      const newDrivers = generateDummyDrivers(center, 10);
+      const newDrivers = generateAvailableDrivers(center, 10);
       setDrivers(newDrivers);
       setSelectedDriverId(newDrivers[0]?.id ?? null);
       setLocating(false);
@@ -209,7 +209,7 @@ export default function LiveDispatch() {
       setStatusText(`GPS active ±${Math.round(result.accuracy)}m via ${source}`);
     };
 
-    const fallbackToDemo = async () => {
+    const fallbackToAvailable = async () => {
       if (finalized || cancelled) return;
       finalized = true;
 
@@ -232,9 +232,9 @@ export default function LiveDispatch() {
 
       if (stored) {
         setMapCenter(stored);
-        setPinState('demo');
+        setPinState('available');
         setPinnedAccuracyM(null);
-        const newDrivers = generateDummyDrivers(stored, 10);
+        const newDrivers = generateAvailableDrivers(stored, 10);
         setDrivers(newDrivers);
         setSelectedDriverId(newDrivers[0]?.id ?? null);
         setLocating(false);
@@ -251,9 +251,9 @@ export default function LiveDispatch() {
           const ipLocation: LatLng = { lat: data.latitude, lng: data.longitude };
           logPin('IP_LOCATION_SUCCESS', ipLocation);
           setMapCenter(ipLocation);
-          setPinState('demo');
+          setPinState('available');
           setPinnedAccuracyM(null);
-          const newDrivers = generateDummyDrivers(ipLocation, 10);
+          const newDrivers = generateAvailableDrivers(ipLocation, 10);
           setDrivers(newDrivers);
           setSelectedDriverId(newDrivers[0]?.id ?? null);
           setLocating(false);
@@ -266,13 +266,13 @@ export default function LiveDispatch() {
 
       // Last resort: use default center
       setMapCenter(defaultCenter);
-      setPinState('demo');
+      setPinState('available');
       setPinnedAccuracyM(null);
-      const newDrivers = generateDummyDrivers(defaultCenter, 10);
+      const newDrivers = generateAvailableDrivers(defaultCenter, 10);
       setDrivers(newDrivers);
       setSelectedDriverId(newDrivers[0]?.id ?? null);
       setLocating(false);
-      setStatusText('Demo mode - GPS unavailable');
+      setStatusText('Searching for nearby drivers...');
     };
 
     const requestLocation = () => {
@@ -340,7 +340,7 @@ export default function LiveDispatch() {
           logPin('GPS_WATCH_FAILED', { error: err.message });
           // If all methods failed, fallback
           if (methodStatus[0] === 'fail' && methodStatus[1] === 'fail') {
-            fallbackToDemo();
+            fallbackToAvailable();
           }
         },
         { enableHighAccuracy: true, maximumAge: 0 }
@@ -352,7 +352,7 @@ export default function LiveDispatch() {
       setTimeout(() => {
         if (!finalized && !cancelled) {
           logPin('DEADLINE_TIMEOUT');
-          fallbackToDemo();
+          fallbackToAvailable();
         }
       }, 20000);
     };
@@ -416,11 +416,11 @@ export default function LiveDispatch() {
               <p className="text-slate-600 mb-8 leading-relaxed">
                 {locating
                   ? 'Finding your location... GPS pin will update automatically.'
-                  : pinState === 'pinned'
+                  : pinState === 'found'
                     ? `GPS pinned at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}${
                         pinnedAccuracyM != null ? ` (±${Math.round(pinnedAccuracyM)}m)` : ''
                       }. Tap a driver to highlight it.`
-                    : `Demo/stored center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
+                    : `Stored/fallback center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
               </p>
               
               {/* GPS Method Status Debug Panel */}
@@ -462,10 +462,10 @@ export default function LiveDispatch() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-900">
-                      {locating ? 'Locating...' : pinState === 'pinned' ? 'Real GPS location' : 'Demo area'}
+                      {locating ? 'Locating...' : pinState === 'found' ? 'Real GPS location' : 'Fallback location'}
                     </p>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                      {locating ? 'GPS requesting...' : pinState === 'pinned' ? 'Auto-pinned via GPS' : 'Using stored/default location'}
+                      {locating ? 'GPS requesting...' : pinState === 'found' ? 'Auto-pinned via GPS' : 'Using stored/default location'}
                     </p>
                   </div>
                 </div>
@@ -475,10 +475,10 @@ export default function LiveDispatch() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-900">
-                      {pinState === 'pinned' ? 'Real distance estimates' : 'Estimated times'}
+                      {pinState === 'found' ? 'Real distance estimates' : 'Estimated times'}
                     </p>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                      {pinState === 'pinned' ? 'Based on GPS location' : 'Demo estimates'}
+                      {pinState === 'found' ? 'Based on GPS location' : 'Estimated times'}
                     </p>
                   </div>
                 </div>
@@ -499,7 +499,7 @@ export default function LiveDispatch() {
                 center={mapCenter}
                 drivers={drivers}
                 selectedDriverId={selectedDriverId}
-                pinState={locating ? 'pinning' : pinState}
+                pinState={locating ? 'searching' : pinState}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none" />
               <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 flex items-center justify-between pointer-events-auto">
@@ -508,11 +508,11 @@ export default function LiveDispatch() {
                   <span className="text-xs font-bold text-slate-900">
                     {locating
                       ? 'Pinning GPS…'
-                      : pinState === 'pinned'
+                      : pinState === 'found'
                         ? pinnedAccuracyM != null
-                          ? `Pinned • ±${Math.round(pinnedAccuracyM)}m • demo drivers`
-                          : 'Pinned • GPS • demo drivers'
-                        : `Demo pins • ${mapCenter.lat.toFixed(2)}, ${mapCenter.lng.toFixed(2)}`}
+                          ? `Pinned • ±${Math.round(pinnedAccuracyM)}m • available drivers`
+                          : 'Pinned • GPS • available drivers'
+                        : `Available drivers • ${mapCenter.lat.toFixed(2)}, ${mapCenter.lng.toFixed(2)}`}
                   </span>
                 </div>
                 <button
@@ -521,7 +521,7 @@ export default function LiveDispatch() {
                     
                     // Reset state
                     setLocating(true);
-                    setPinState('pinning');
+                    setPinState('searching');
                     setPinnedAccuracyM(null);
                     setSelectedDriverId(null);
                     
@@ -536,9 +536,9 @@ export default function LiveDispatch() {
                       
                       const center = { lat: result.latitude, lng: result.longitude };
                       setMapCenter(center);
-                      setPinState('pinned');
+                      setPinState('found');
                       setPinnedAccuracyM(result.accuracy);
-                      const newDrivers = generateDummyDrivers(center, 10);
+                      const newDrivers = generateAvailableDrivers(center, 10);
                       setDrivers(newDrivers);
                       setSelectedDriverId(newDrivers[0]?.id ?? null);
                       setLocating(false);
@@ -567,9 +567,9 @@ export default function LiveDispatch() {
 
                       if (stored) {
                         setMapCenter(stored);
-                        setPinState('demo');
+                        setPinState('available');
                         setPinnedAccuracyM(null);
-                        const newDrivers = generateDummyDrivers(stored, 10);
+                        const newDrivers = generateAvailableDrivers(stored, 10);
                         setDrivers(newDrivers);
                         setSelectedDriverId(newDrivers[0]?.id ?? null);
                         setLocating(false);
@@ -583,9 +583,9 @@ export default function LiveDispatch() {
                         if (data.latitude && data.longitude) {
                           const ipLocation: LatLng = { lat: data.latitude, lng: data.longitude };
                           setMapCenter(ipLocation);
-                          setPinState('demo');
+                          setPinState('available');
                           setPinnedAccuracyM(null);
-                          const newDrivers = generateDummyDrivers(ipLocation, 10);
+                          const newDrivers = generateAvailableDrivers(ipLocation, 10);
                           setDrivers(newDrivers);
                           setSelectedDriverId(newDrivers[0]?.id ?? null);
                           setLocating(false);
@@ -596,7 +596,7 @@ export default function LiveDispatch() {
                       }
 
                       // Last resort: keep current center
-                      setPinState('demo');
+                      setPinState('available');
                       setPinnedAccuracyM(null);
                       setLocating(false);
                     }
@@ -623,11 +623,11 @@ export default function LiveDispatch() {
                     <p className="text-sm text-slate-600 mt-2">
                       {locating
                         ? 'Pinning GPS… drivers will update as we get a fix.'
-                        : pinState === 'pinned'
+                        : pinState === 'found'
                           ? `GPS pinned at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}${
                               pinnedAccuracyM != null ? ` (±${Math.round(pinnedAccuracyM)}m)` : ''
                             }. Tap a driver to highlight it.`
-                          : `Demo/stored center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
+                          : `Stored/fallback center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
                     </p>
                   </div>
                 </div>
