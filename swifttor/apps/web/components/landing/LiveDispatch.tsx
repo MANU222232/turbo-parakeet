@@ -194,6 +194,7 @@ export default function LiveDispatch() {
       setMapCenter(center);
       setPinState('found');
       setPinnedAccuracyM(result.accuracy);
+      setLocationFailed(false);
       const newDrivers = generateAvailableDrivers(center, 10);
       setDrivers(newDrivers);
       setSelectedDriverId(newDrivers[0]?.id ?? null);
@@ -214,67 +215,14 @@ export default function LiveDispatch() {
       if (finalized || cancelled) return;
       finalized = true;
 
-      logPin('USING_FALLBACK');
-
-      // Try to get stored location first
-      let stored: LatLng | null = null;
-      try {
-        const raw = window.localStorage.getItem('swiftTow.lastLocation');
-        if (raw) {
-          const parsed = JSON.parse(raw) as LatLng;
-          if (typeof parsed?.lat === 'number' && typeof parsed?.lng === 'number') {
-            stored = parsed;
-            logPin('USING_STORED_LOCATION', stored);
-          }
-        }
-      } catch (e) {
-        logPin('STORAGE_READ_ERROR', { error: e });
-      }
-
-      if (stored) {
-        setMapCenter(stored);
-        setPinState('available');
-        setPinnedAccuracyM(null);
-        const newDrivers = generateAvailableDrivers(stored, 10);
-        setDrivers(newDrivers);
-        setSelectedDriverId(newDrivers[0]?.id ?? null);
-        setLocating(false);
-        setStatusText(`Stored location ±unknown`);
-        return;
-      }
-
-      // Try IP-based geolocation as a better fallback than hardcoded coordinates
-      try {
-        logPin('FETCHING_IP_LOCATION');
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        if (data.latitude && data.longitude) {
-          const ipLocation: LatLng = { lat: data.latitude, lng: data.longitude };
-          logPin('IP_LOCATION_SUCCESS', ipLocation);
-          setMapCenter(ipLocation);
-          setPinState('available');
-          setPinnedAccuracyM(null);
-          const newDrivers = generateAvailableDrivers(ipLocation, 10);
-          setDrivers(newDrivers);
-          setSelectedDriverId(newDrivers[0]?.id ?? null);
-          setLocating(false);
-          setStatusText(`IP-based location (${data.city || 'Unknown'})`);
-          return;
-        }
-      } catch (e) {
-        logPin('IP_LOCATION_FAILED', { error: e });
-      }
-
-      // Last resort: use default center
-      setMapCenter(defaultCenter);
+      logPin('LOCATION_ACQUISITION_FAILED');
       setPinState('available');
-      setPinnedAccuracyM(null);
-      const newDrivers = generateAvailableDrivers(defaultCenter, 10);
-      setDrivers(newDrivers);
-      setSelectedDriverId(newDrivers[0]?.id ?? null);
       setLocating(false);
       setLocationFailed(true);
-      setStatusText('Searching for nearby drivers...');
+      setStatusText('Unable to acquire location');
+      
+      // Do NOT show drivers - only show request assistance button
+      // User must contact directly via WhatsApp
     };
 
     const requestLocation = () => {
@@ -486,48 +434,7 @@ export default function LiveDispatch() {
                         error: error instanceof Error ? error.message : String(error)
                       });
 
-                      // Try stored location
-                      let stored: LatLng | null = null;
-                      try {
-                        const raw = window.localStorage.getItem('swiftTow.lastLocation');
-                        if (raw) {
-                          stored = JSON.parse(raw) as LatLng;
-                        }
-                      } catch (e) {
-                        logPin('STORAGE_READ_ERROR', { error: e });
-                      }
-
-                      if (stored) {
-                        setMapCenter(stored);
-                        setPinState('available');
-                        setPinnedAccuracyM(null);
-                        const newDrivers = generateAvailableDrivers(stored, 10);
-                        setDrivers(newDrivers);
-                        setSelectedDriverId(newDrivers[0]?.id ?? null);
-                        setLocating(false);
-                        return;
-                      }
-
-                      // Try IP-based geolocation
-                      try {
-                        const response = await fetch('https://ipapi.co/json/');
-                        const data = await response.json();
-                        if (data.latitude && data.longitude) {
-                          const ipLocation: LatLng = { lat: data.latitude, lng: data.longitude };
-                          setMapCenter(ipLocation);
-                          setPinState('available');
-                          setPinnedAccuracyM(null);
-                          const newDrivers = generateAvailableDrivers(ipLocation, 10);
-                          setDrivers(newDrivers);
-                          setSelectedDriverId(newDrivers[0]?.id ?? null);
-                          setLocating(false);
-                          return;
-                        }
-                      } catch (e) {
-                        logPin('IP_LOCATION_FAILED', { error: e });
-                      }
-
-                      // Last resort: keep current center
+                      // GPS refresh failed - mark as failed
                       setPinState('available');
                       setPinnedAccuracyM(null);
                       setLocating(false);
