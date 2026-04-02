@@ -83,6 +83,9 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* ── Live Dispatch & Availability ── */}
+      <LiveDispatch />
+
       {/* ── Hero Section ── */}
       <section className="relative overflow-hidden py-16 lg:py-24">
         {/* Background skew accent */}
@@ -150,7 +153,7 @@ export default function LandingPage() {
               {/* CTA group */}
               <div className="flex flex-wrap items-center gap-6">
                 <button
-                  onClick={() => router.push('/emergency-report')}
+                  onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
                   className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black italic uppercase tracking-tight shadow-emerald transition-all active:scale-95"
                 >
                   Request Service Now <ChevronRight size={18} />
@@ -211,7 +214,7 @@ export default function LandingPage() {
                     {services.map(svc => (
                       <button
                         key={svc.id}
-                        onClick={() => router.push('/emergency-report')}
+                        onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
                         className="group flex flex-col items-start gap-3 p-4 bg-white/5 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-400/40 rounded-2xl transition-all text-left active:scale-95"
                       >
                         <div className="text-slate-400 group-hover:text-emerald-400 transition-colors">
@@ -226,7 +229,7 @@ export default function LandingPage() {
                   </div>
 
                   <button
-                    onClick={() => router.push('/emergency-report')}
+                    onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
                     className="mt-5 w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm uppercase italic tracking-wide transition-all active:scale-95 shadow shadow-emerald-500/30"
                   >
                     Continue to Dispatch →
@@ -263,9 +266,6 @@ export default function LandingPage() {
       {/* ── Running Offers ── */}
       <RunningOffers />
 
-      {/* ── Live Dispatch & Availability ── */}
-      <LiveDispatch />
-
 
       {/* ── Services Section ── */}
       <section id="services" className="py-24 bg-slate-50">
@@ -287,7 +287,7 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
-                onClick={() => router.push('/emergency-report')}
+                onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
                 className="group cursor-pointer p-8 rounded-3xl bg-white border border-slate-100 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-card"
               >
                 <div className="mb-5 text-slate-400 group-hover:text-emerald-400 transition-colors">
@@ -365,6 +365,65 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Live Dispatch Feed Marquee ── */}
+      <section className="py-24 bg-slate-900 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-red-500/20 text-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 animate-pulse">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Live Dispatch Feed
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase italic leading-none">
+                Real-Time <span className="text-emerald-500">Recoveries.</span>
+              </h2>
+            </div>
+            <p className="text-slate-400 max-w-sm text-sm">
+              Our drivers upload photos from every job to ensure transparency and safety. Here&apos;s what&apos;s happening on the road right now.
+            </p>
+          </div>
+
+          <div className="flex gap-6 overflow-hidden relative">
+            <div className="flex gap-6 animate-marquee whitespace-nowrap" style={{ animation: 'marquee 30s linear infinite' }}>
+              {[
+                { loc: "Expert Recovery", time: "Top-rated recovery team", img: "https://images.unsplash.com/photo-1597766353939-996076329780?auto=format&fit=crop&q=80&w=600" },
+                { loc: "Fast Arrival", time: "Fast dispatch", img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=600" },
+                { loc: "Safe & Secure", time: "Certified professionals", img: "https://images.unsplash.com/photo-1586191582151-f73770706260?auto=format&fit=crop&q=80&w=600" },
+                { loc: "24/7 Support", time: "Always On Call", img: "https://images.unsplash.com/photo-1566367711988-89f40d4d9bc4?auto=format&fit=crop&q=80&w=600" },
+                { loc: "Local Trusted", time: "Preferred partner network", img: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=600" }
+              ].map((job, i) => (
+                // Generate duplicates for continuous scroll
+                [...Array(2)].map((_, setIdx) => (
+                  <div key={`${i}-${setIdx}`} className="inline-block w-80 shrink-0">
+                    <div className="relative h-96 rounded-[2rem] overflow-hidden border border-white/10 group">
+                      <img 
+                        src={job.img} 
+                        alt="Live recovery" 
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                      <div className="absolute bottom-6 left-6 right-6">
+                        <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">{job.loc}</p>
+                        <p className="text-lg font-black italic uppercase tracking-tight">{job.time}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )).flat()}
+            </div>
+          </div>
+        </div>
+      </section>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+      `}} />
+
       {/* ── Testimonials ── */}
       <Testimonials />
 
@@ -381,7 +440,7 @@ export default function LandingPage() {
             Don&apos;t wait. We dispatch the nearest certified driver immediately and keep you updated.
           </p>
           <button
-            onClick={() => router.push('/emergency-report')}
+            onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
             className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black italic uppercase tracking-tight transition-all shadow-emerald active:scale-95"
           >
             Get Help Now

@@ -145,6 +145,7 @@ export default function LiveDispatch() {
   const [locating, setLocating] = useState(true);
   const [pinState, setPinState] = useState<'available' | 'searching' | 'found'>('searching');
   const [pinnedAccuracyM, setPinnedAccuracyM] = useState<number | null>(null);
+  const [locationFailed, setLocationFailed] = useState(false);
   const locationAttemptedRef = useRef(false);
   const [methodStatus, setMethodStatus] = useState<[MethodState, MethodState, MethodState]>(['idle', 'idle', 'idle']);
   const watchIdRef = useRef<number | null>(null);
@@ -272,6 +273,7 @@ export default function LiveDispatch() {
       setDrivers(newDrivers);
       setSelectedDriverId(newDrivers[0]?.id ?? null);
       setLocating(false);
+      setLocationFailed(true);
       setStatusText('Searching for nearby drivers...');
     };
 
@@ -422,76 +424,6 @@ export default function LiveDispatch() {
                       }. Tap a driver to highlight it.`
                     : `Stored/fallback center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
               </p>
-              
-              {/* GPS Method Status Debug Panel */}
-              <div className="mb-6 bg-white rounded-2xl border border-slate-100 p-4">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-3">GPS Source Methods</p>
-                <div className="space-y-2">
-                  {[
-                    ['Cached (instant)', 'bg-slate-100'],
-                    ['WiFi/Cell (fast)', 'bg-amber-50'],
-                    ['GPS (precise)', 'bg-emerald-50']
-                  ].map(([label, baseClass], i) => {
-                    const state = methodStatus[i];
-                    const colors: Record<MethodState, string> = {
-                      idle: 'bg-slate-100 text-slate-400',
-                      trying: 'bg-amber-100 text-amber-700 animate-pulse',
-                      ok: 'bg-emerald-100 text-emerald-700',
-                      fail: 'bg-red-100 text-red-700',
-                    };
-                    return (
-                      <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="text-slate-600 font-medium">{label}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${colors[state]}`}>
-                          {state}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <p className="text-[9px] text-slate-500 leading-relaxed">
-                    <span className="font-semibold">Status:</span> {statusText}
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-emerald-500">
-                    <Truck size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">
-                      {locating ? 'Locating...' : pinState === 'found' ? 'Real GPS location' : 'Fallback location'}
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                      {locating ? 'GPS requesting...' : pinState === 'found' ? 'Auto-pinned via GPS' : 'Using stored/default location'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-500">
-                    <Clock size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">
-                      {pinState === 'found' ? 'Real distance estimates' : 'Estimated times'}
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                      {pinState === 'found' ? 'Based on GPS location' : 'Estimated times'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-emerald-700">
-                    <Shield size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">View-only map</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pinned location only</p>
-                  </div>
-                </div>
-              </div>
             </div>
             
             <div className="lg:col-span-2 h-[450px] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200 border-8 border-white relative group">
@@ -599,6 +531,7 @@ export default function LiveDispatch() {
                       setPinState('available');
                       setPinnedAccuracyM(null);
                       setLocating(false);
+                      setLocationFailed(true);
                     }
                   }}
                   className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:underline disabled:opacity-60 disabled:cursor-not-allowed"
@@ -616,92 +549,105 @@ export default function LiveDispatch() {
 
             <div className="lg:col-span-1">
               <div className="h-[450px] rounded-[2.5rem] bg-white border border-slate-100 p-6 shadow-card flex flex-col">
-                <div className="flex items-start justify-between gap-4 mb-5">
-                  <div>
-                    <p className="text-xs font-bold text-emerald-500 uppercase tracking-[0.2em]">Nearby drivers</p>
-                    <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 mt-1">Select a driver</h3>
-                    <p className="text-sm text-slate-600 mt-2">
-                      {locating
-                        ? 'Pinning GPS… drivers will update as we get a fix.'
-                        : pinState === 'found'
-                          ? `GPS pinned at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}${
-                              pinnedAccuracyM != null ? ` (±${Math.round(pinnedAccuracyM)}m)` : ''
-                            }. Tap a driver to highlight it.`
-                          : `Stored/fallback center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
-                    </p>
-                  </div>
-                </div>
+                {locationFailed || locating ? (
+                  <>
+                    <div className="flex-1 flex flex-col items-center justify-center text-center">
+                      <h3 className="text-lg font-black italic uppercase tracking-tight text-slate-900 mb-3">
+                        {locating ? 'Locating...' : 'Unable to get your location'}
+                      </h3>
+                      <p className="text-sm text-slate-600 mb-6">
+                        {locating 
+                          ? 'Getting your GPS location...' 
+                          : 'Please enable location services or contact us directly via WhatsApp.'}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-4 mb-5">
+                      <div>
+                        <p className="text-xs font-bold text-emerald-500 uppercase tracking-[0.2em]">Nearby drivers</p>
+                        <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 mt-1">Select a driver</h3>
+                        <p className="text-sm text-slate-600 mt-2">
+                          {`GPS pinned at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}${
+                            pinnedAccuracyM != null ? ` (±${Math.round(pinnedAccuracyM)}m)` : ''
+                          }. Tap a driver to highlight it.`}
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Tabs */}
-                <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-2xl mb-4">
-                  {(
-                    [
-                      ['best', 'Best Match'],
-                      ['nearest', 'Nearest'],
-                      ['fastest', 'Fastest'],
-                      ['top', 'Top Rated'],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setActiveTab(key)}
-                      className={`flex-1 text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-2xl transition-all ${
-                        activeTab === key
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-transparent text-slate-600 hover:bg-white border border-transparent hover:border-slate-200'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                    {/* Tabs */}
+                    <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-2xl mb-4">
+                      {(
+                        [
+                          ['best', 'Best Match'],
+                          ['nearest', 'Nearest'],
+                          ['fastest', 'Fastest'],
+                          ['top', 'Top Rated'],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setActiveTab(key)}
+                          className={`flex-1 text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-2xl transition-all ${
+                            activeTab === key
+                              ? 'bg-emerald-500 text-white'
+                              : 'bg-transparent text-slate-600 hover:bg-white border border-transparent hover:border-slate-200'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
 
-                {/* Driver list */}
-                <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
-                  {sortedDrivers.slice(0, 7).map((driver) => {
-                    const etaLow = Math.max(1, driver.etaMins - 3);
-                    const etaHigh = driver.etaMins + 3;
-                    const isSelected = driver.id === selectedDriverId;
-                    return (
-                      <button
-                        key={driver.id}
-                        type="button"
-                        onClick={() => setSelectedDriverId(driver.id)}
-                        className={`w-full text-left p-4 rounded-[1.75rem] border transition-all ${
-                          isSelected
-                            ? 'bg-emerald-50 border-emerald-300'
-                            : 'bg-white border-slate-100 hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="font-bold text-slate-900 truncate">{driver.name}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Available</p>
-                          </div>
-                          <div className="flex items-center gap-1 text-amber-500 font-bold text-sm shrink-0">
-                            <Star size={14} fill="currentColor" />
-                            {driver.rating.toFixed(1)}
-                          </div>
-                        </div>
+                    {/* Driver list */}
+                    <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
+                      {sortedDrivers.slice(0, 7).map((driver) => {
+                        const etaLow = Math.max(1, driver.etaMins - 3);
+                        const etaHigh = driver.etaMins + 3;
+                        const isSelected = driver.id === selectedDriverId;
+                        return (
+                          <button
+                            key={driver.id}
+                            type="button"
+                            onClick={() => setSelectedDriverId(driver.id)}
+                            className={`w-full text-left p-4 rounded-[1.75rem] border transition-all ${
+                              isSelected
+                                ? 'bg-emerald-50 border-emerald-300'
+                                : 'bg-white border-slate-100 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="font-bold text-slate-900 truncate">{driver.name}</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Available</p>
+                              </div>
+                              <div className="flex items-center gap-1 text-amber-500 font-bold text-sm shrink-0">
+                                <Star size={14} fill="currentColor" />
+                                {driver.rating.toFixed(1)}
+                              </div>
+                            </div>
 
-                        <div className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                          <MapPin size={14} />
-                          {driver.distanceMi.toFixed(1)} mi
-                        </div>
+                            <div className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                              <MapPin size={14} />
+                              {driver.distanceMi.toFixed(1)} mi
+                            </div>
 
-                        <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                          <Clock size={14} />
-                          Est. ETA {etaLow}-{etaHigh}m
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                            <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                              <Clock size={14} />
+                              Est. ETA {etaLow}-{etaHigh}m
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
 
                 <button
                   type="button"
-                  onClick={() => router.push('/emergency-report')}
+                  onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
                   className="mt-5 w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-emerald"
                 >
                   Request Assistance
@@ -711,56 +657,6 @@ export default function LiveDispatch() {
           </div>
         </div>
       </section>
-
-      {/* Live Dispatch Feed Marquee */}
-      <section className="py-24 bg-slate-900 text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-red-500/20 text-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 animate-pulse">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Live Dispatch Feed
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase italic leading-none">
-                Real-Time <span className="text-emerald-500">Recoveries.</span>
-              </h2>
-            </div>
-            <p className="text-slate-400 max-w-sm text-sm">
-              Our drivers upload photos from every job to ensure transparency and safety. Here&apos;s what&apos;s happening on the road right now.
-            </p>
-          </div>
-
-          <div className="flex gap-6 overflow-hidden relative">
-            <div className="flex gap-6 animate-marquee whitespace-nowrap" style={{ animation: 'marquee 30s linear infinite' }}>
-              {[...liveRecoveries, ...liveRecoveries].map((job, i) => (
-                <div key={i} className="inline-block w-80 shrink-0">
-                  <div className="relative h-96 rounded-[2rem] overflow-hidden border border-white/10 group">
-                    <img 
-                      src={job.img} 
-                      alt="Live recovery" 
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">{job.loc}</p>
-                      <p className="text-lg font-black italic uppercase tracking-tight">{job.time}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 30s linear infinite;
-        }
-      `}} />
     </>
   );
 }
