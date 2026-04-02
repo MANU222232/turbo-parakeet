@@ -105,24 +105,23 @@ export default function LandingPage() {
                 <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white">
                   🏆
                 </span>
-                FAST ARRIVAL PROMISE
+                UNMATCHED SPEED & RELIABILITY
               </div>
               {/* ETA pill */}
               <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-bold mb-6">
-                <Clock size={14} /> Live ETA updates
+                <Clock size={14} /> Real-Time GPS Tracking
               </div>
 
               <h1 className="text-5xl lg:text-7xl font-black italic uppercase tracking-tighter text-slate-900 leading-[0.9] mb-8">
-                Stranded?<br />
-                <span className="text-emerald-500">Nearest Driver, Fast.</span>
+                Breakdown?<br />
+                <span className="text-emerald-500">Help Is Minutes Away.</span>
               </h1>
 
               <p className="text-lg text-slate-600 leading-relaxed mb-4 max-w-lg">
-                SwiftTow dispatches certified towing and roadside help with live tracking and upfront pricing.
-                No surprises. Just fast support when you need it most.
+                We instantly deploy top-tier, certified towing and roadside professionals directly to your location. Experience absolute peace of mind with live vehicle tracking, transparent upfront pricing, and zero hidden fees.
               </p>
               <p className="font-bold text-emerald-600 mb-8">
-                Need help right now? Tap WhatsApp and we&apos;ll match you in seconds.
+                Need immediate assistance? Tap WhatsApp to secure your driver in seconds.
               </p>
 
               {/* Stats Bar (Borrowed from SwiftTor reference) */}

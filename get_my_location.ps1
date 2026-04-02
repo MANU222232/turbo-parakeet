@@ -22,5 +22,5 @@ try {
         Write-Warning "Could not find coordinates in the service response."
     }
 } catch {
-    Write-Error "Error: $($_.Exception.Message)"
+    Write-Error "Error: $_"
 }

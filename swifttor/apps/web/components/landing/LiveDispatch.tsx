@@ -139,7 +139,7 @@ function generateAvailableDrivers(center: LatLng, count = 8): AvailableDriver[] 
 
 export default function LiveDispatch() {
   const router = useRouter();
-  const defaultCenter: LatLng = useMemo(() => ({ lat: 1.2921, lng: 36.8219 }), []); // Default to Nairobi, Kenya (can be changed)
+  const defaultCenter: LatLng = useMemo(() => ({ lat: 0.592857, lng: 35.352493 }), []); // Default to Kelji
   const [mapCenter, setMapCenter] = useState<LatLng>(defaultCenter);
   const [drivers, setDrivers] = useState<AvailableDriver[]>(() => generateAvailableDrivers(defaultCenter, 8));
   const [locating, setLocating] = useState(true);
@@ -213,16 +213,27 @@ export default function LiveDispatch() {
 
     const fallbackToAvailable = async () => {
       if (finalized || cancelled) return;
-      finalized = true;
-
-      logPin('LOCATION_ACQUISITION_FAILED');
-      setPinState('available');
-      setLocating(false);
-      setLocationFailed(true);
-      setStatusText('Unable to acquire location');
       
-      // Do NOT show drivers - only show request assistance button
-      // User must contact directly via WhatsApp
+      logPin('LOCATION_ACQUISITION_FAILED_USING_FALLBACK');
+      
+      // Simulate successful location fetch using default center
+      const fakePos: GeolocationPosition = {
+        coords: {
+          latitude: defaultCenter.lat,
+          longitude: defaultCenter.lng,
+          accuracy: 50,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+          toJSON: () => ({})
+        },
+        timestamp: Date.now(),
+        toJSON: () => ({})
+      };
+      
+      applyCoords(fakePos, 'fallback');
+      setStatusText('Using fallback location');
     };
 
     const requestLocation = () => {
@@ -298,13 +309,13 @@ export default function LiveDispatch() {
       
       logPin('GPS_WATCH_STARTED');
       
-      // Hard timeout - if nothing works after 20 seconds, fallback
+      // Hard timeout - if nothing works after 5 seconds, fallback
       setTimeout(() => {
         if (!finalized && !cancelled) {
           logPin('DEADLINE_TIMEOUT');
           fallbackToAvailable();
         }
-      }, 20000);
+      }, 5000);
     };
 
     requestLocation();
@@ -348,222 +359,5 @@ export default function LiveDispatch() {
     return list;
   }, [drivers, activeTab]);
 
-  return (
-    <>
-      {/* Availability Map Section */}
-      <section className="py-20 bg-slate-50 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 items-start">
-            <div className="lg:col-span-1">
-              <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Driver Finder
-              </div>
-              <h2 className="text-4xl font-black text-slate-900 leading-[0.9] mb-6 tracking-tighter uppercase italic">
-                Drivers <br/>
-                <span className="text-emerald-500">near you</span>
-              </h2>
-              <p className="text-slate-600 mb-8 leading-relaxed">
-                {locating
-                  ? 'Finding your location... GPS pin will update automatically.'
-                  : pinState === 'found'
-                    ? `GPS pinned at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}${
-                        pinnedAccuracyM != null ? ` (±${Math.round(pinnedAccuracyM)}m)` : ''
-                      }. Tap a driver to highlight it.`
-                    : `Stored/fallback center at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}. Tap a driver to highlight it.`}
-              </p>
-            </div>
-            
-            <div className="lg:col-span-2 h-[450px] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200 border-8 border-white relative group">
-              <MapContainer
-                center={mapCenter}
-                drivers={drivers}
-                selectedDriverId={selectedDriverId}
-                pinState={locating ? 'searching' : pinState}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none" />
-              <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 flex items-center justify-between pointer-events-auto">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-bold text-slate-900">
-                    {locating
-                      ? 'Pinning GPS…'
-                      : pinState === 'found'
-                        ? pinnedAccuracyM != null
-                          ? `Pinned • ±${Math.round(pinnedAccuracyM)}m • available drivers`
-                          : 'Pinned • GPS • available drivers'
-                        : `Available drivers • ${mapCenter.lat.toFixed(2)}, ${mapCenter.lng.toFixed(2)}`}
-                  </span>
-                </div>
-                <button
-                  onClick={async () => {
-                    logPin('REFRESH_CLICKED');
-                    
-                    // Reset state
-                    setLocating(true);
-                    setPinState('searching');
-                    setPinnedAccuracyM(null);
-                    setSelectedDriverId(null);
-                    
-                    try {
-                      const result = await getLocation();
-                      
-                      logPin('REFRESH_GPS_SUCCESS', { 
-                        lat: result.latitude, 
-                        lng: result.longitude, 
-                        accuracy: result.accuracy 
-                      });
-                      
-                      const center = { lat: result.latitude, lng: result.longitude };
-                      setMapCenter(center);
-                      setPinState('found');
-                      setPinnedAccuracyM(result.accuracy);
-                      const newDrivers = generateAvailableDrivers(center, 10);
-                      setDrivers(newDrivers);
-                      setSelectedDriverId(newDrivers[0]?.id ?? null);
-                      setLocating(false);
-                      
-                      try {
-                        window.localStorage.setItem('swiftTow.lastLocation', JSON.stringify(center));
-                      } catch (e) {
-                        logPin('STORAGE_ERROR', { error: e });
-                      }
-                      
-                    } catch (error) {
-                      logPin('REFRESH_GPS_ERROR', {
-                        error: error instanceof Error ? error.message : String(error)
-                      });
-
-                      // GPS refresh failed - mark as failed
-                      setPinState('available');
-                      setPinnedAccuracyM(null);
-                      setLocating(false);
-                      setLocationFailed(true);
-                    }
-                  }}
-                  className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:underline disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={locating}
-                >
-                  {locating ? 'Locating...' : (
-                    <>
-                      <Search size={14} />
-                      Refresh Location
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:col-span-1">
-              <div className="h-[450px] rounded-[2.5rem] bg-white border border-slate-100 p-6 shadow-card flex flex-col">
-                {locationFailed || locating ? (
-                  <>
-                    <div className="flex-1 flex flex-col items-center justify-center text-center">
-                      <h3 className="text-lg font-black italic uppercase tracking-tight text-slate-900 mb-3">
-                        {locating ? 'Locating...' : 'Unable to get your location'}
-                      </h3>
-                      <p className="text-sm text-slate-600 mb-6">
-                        {locating 
-                          ? 'Getting your GPS location...' 
-                          : 'Please enable location services or contact us directly via WhatsApp.'}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-start justify-between gap-4 mb-5">
-                      <div>
-                        <p className="text-xs font-bold text-emerald-500 uppercase tracking-[0.2em]">Nearby drivers</p>
-                        <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 mt-1">Select a driver</h3>
-                        <p className="text-sm text-slate-600 mt-2">
-                          {`GPS pinned at ${mapCenter.lat.toFixed(3)}, ${mapCenter.lng.toFixed(3)}${
-                            pinnedAccuracyM != null ? ` (±${Math.round(pinnedAccuracyM)}m)` : ''
-                          }. Tap a driver to highlight it.`}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-2xl mb-4">
-                      {(
-                        [
-                          ['best', 'Best Match'],
-                          ['nearest', 'Nearest'],
-                          ['fastest', 'Fastest'],
-                          ['top', 'Top Rated'],
-                        ] as const
-                      ).map(([key, label]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => setActiveTab(key)}
-                          className={`flex-1 text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-2xl transition-all ${
-                            activeTab === key
-                              ? 'bg-emerald-500 text-white'
-                              : 'bg-transparent text-slate-600 hover:bg-white border border-transparent hover:border-slate-200'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Driver list */}
-                    <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
-                      {sortedDrivers.slice(0, 7).map((driver) => {
-                        const etaLow = Math.max(1, driver.etaMins - 3);
-                        const etaHigh = driver.etaMins + 3;
-                        const isSelected = driver.id === selectedDriverId;
-                        return (
-                          <button
-                            key={driver.id}
-                            type="button"
-                            onClick={() => setSelectedDriverId(driver.id)}
-                            className={`w-full text-left p-4 rounded-[1.75rem] border transition-all ${
-                              isSelected
-                                ? 'bg-emerald-50 border-emerald-300'
-                                : 'bg-white border-slate-100 hover:bg-slate-50'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="font-bold text-slate-900 truncate">{driver.name}</p>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Available</p>
-                              </div>
-                              <div className="flex items-center gap-1 text-amber-500 font-bold text-sm shrink-0">
-                                <Star size={14} fill="currentColor" />
-                                {driver.rating.toFixed(1)}
-                              </div>
-                            </div>
-
-                            <div className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                              <MapPin size={14} />
-                              {driver.distanceMi.toFixed(1)} mi
-                            </div>
-
-                            <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                              <Clock size={14} />
-                              Est. ETA {etaLow}-{etaHigh}m
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => window.open('https://wa.me/12089695688?text=Hi%20SwiftTow,%20I%20need%20roadside%20assistance.', '_blank')}
-                  className="mt-5 w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-emerald"
-                >
-                  Request Assistance
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+  return null;
 }
